@@ -35,7 +35,7 @@ print(result)
 
 ## Architecture
 
-- **LLM Client** (`skadi/engine/llm_client.py`) - OpenRouter API interface using Claude 3.5 Haiku
+- **LLM Client** (`skadi/engine/llm_client.py`) - OpenRouter API interface using Claude Haiku 4.5
 - **Circuit Generator** (`skadi/core/circuit_generator.py`) - Code generation, validation, and execution
 
 ## Examples

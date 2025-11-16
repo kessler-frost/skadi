@@ -11,14 +11,14 @@ class LLMClient:
     """Client for interfacing with LLM via OpenRouter."""
 
     def __init__(
-        self, api_key: Optional[str] = None, model: str = "anthropic/claude-3.5-haiku"
+        self, api_key: Optional[str] = None, model: str = "anthropic/claude-haiku-4.5"
     ):
         """
         Initialize the LLM client.
 
         Args:
             api_key: OpenRouter API key. If None, will use OPENROUTER_API_KEY from environment.
-            model: The model to use for generation. Defaults to Claude 3.5 Haiku.
+            model: The model to use for generation. Defaults to Claude Haiku 4.5.
 
         Raises:
             ValueError: If API key is not provided and not found in environment.

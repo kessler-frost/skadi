@@ -81,11 +81,11 @@ class TestCircuitGenerationFunctional:
         # Verify the result - should be either state vector or probabilities
         assert result is not None
 
-        # If it's a state vector (length 2), check amplitudes
-        if len(result) == 2 and np.iscomplex(result[0]):
+        # If it's a complex-valued state vector, check amplitudes
+        if np.iscomplexobj(result):
             expected_state = np.array([1 / np.sqrt(2), 1 / np.sqrt(2)])
             np.testing.assert_allclose(np.abs(result), expected_state, atol=1e-5)
-        # If it's probabilities (length 2), check equal probabilities
+        # If it's probabilities (real-valued), check equal probabilities
         else:
             expected_probs = np.array([0.5, 0.5])
             np.testing.assert_allclose(result, expected_probs, atol=1e-5)

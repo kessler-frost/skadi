@@ -11,14 +11,14 @@ class CircuitGenerator:
     """Generate PennyLane quantum circuits from natural language descriptions."""
 
     def __init__(
-        self, api_key: Optional[str] = None, model: str = "anthropic/claude-3.5-haiku"
+        self, api_key: Optional[str] = None, model: str = "anthropic/claude-haiku-4.5"
     ):
         """
         Initialize the circuit generator.
 
         Args:
             api_key: OpenRouter API key. If None, will use OPENROUTER_API_KEY from environment.
-            model: The model to use for generation. Defaults to Claude 3.5 Haiku.
+            model: The model to use for generation. Defaults to Claude Haiku 4.5.
         """
         self.llm_client = LLMClient(api_key=api_key, model=model)
 

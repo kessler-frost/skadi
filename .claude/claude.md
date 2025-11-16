@@ -44,7 +44,7 @@ skadi/
 1. **Circuit Generation**: Create PennyLane circuits from natural language descriptions
 2. **Circuit Manipulation**: Merge, transform, optimize, and modify quantum circuits (planned)
 3. **Circuit Analysis**: Understand structure and reverse engineer circuits (planned)
-4. **Natural Language Interface**: Powered by Claude 3.5 Haiku via OpenRouter
+4. **Natural Language Interface**: Powered by Claude Haiku 4.5 via OpenRouter
 5. **Code Validation**: Automatic validation of generated PennyLane code
 6. **Local Execution**: Run circuits on local quantum simulators
 

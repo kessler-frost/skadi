@@ -27,7 +27,7 @@ class TestLLMClient:
         """Test that initializing with API key works."""
         client = LLMClient(api_key="test_key")
         assert client.api_key == "test_key"
-        assert client.model_id == "anthropic/claude-3.5-haiku"
+        assert client.model_id == "anthropic/claude-haiku-4.5"
 
 
 class TestCircuitGenerator:
