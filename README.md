@@ -178,6 +178,165 @@ uv run ruff check .
 uv run ruff format .
 ```
 
+## Circuit Manipulation
+
+Skadi provides powerful circuit manipulation capabilities for transforming, optimizing, analyzing, and rewriting quantum circuits.
+
+### Quick Start
+
+```python
+from skadi import CircuitGenerator, CircuitManipulator
+
+# Generate a circuit
+generator = CircuitGenerator()
+circuit = generator.generate_circuit("Create a Bell state with redundant gates")
+
+# Manipulate the circuit
+manipulator = CircuitManipulator()
+
+# Transform: Apply PennyLane transforms
+optimized = manipulator.optimize(circuit, level="aggressive")
+
+# Analyze: Get circuit insights
+analysis = manipulator.understand(circuit)
+print(analysis["explanation"])
+
+# Rewrite: Modify with natural language
+modified = manipulator.rewrite(circuit, "Add a phase gate before CNOT")
+```
+
+### Core Operations
+
+#### 1. **Transform** - Apply PennyLane Transforms
+
+```python
+manipulator = CircuitManipulator()
+
+# Apply single transform
+transformed = manipulator.transform(circuit, "cancel_inverses")
+
+# Apply sequence of transforms
+transforms_seq = [
+    ("cancel_inverses", None),
+    ("merge_rotations", None),
+    ("commute_controlled", None),
+]
+result = manipulator.transform_sequence(circuit, transforms_seq)
+
+# List available transforms
+print(manipulator.list_transforms())
+```
+
+Available transforms: `cancel_inverses`, `merge_rotations`, `commute_controlled`, `simplify`, `adjoint`, `decompose`, `transpile`
+
+#### 2. **Optimize** - Reduce Gate Count and Depth
+
+```python
+# Optimization levels: basic, default, aggressive
+optimized = manipulator.optimize(circuit, level="aggressive", num_passes=3)
+
+# Get optimization report
+report = manipulator.get_optimization_report(optimized)
+print(report["summary"])
+# Output: "Applied 1 optimization(s). Reduced operations by 3. Reduced depth by 1..."
+
+# Compare optimization levels
+results = manipulator.compare_levels(circuit)
+for level, circuit in results.items():
+    print(f"{level}: {circuit.get_resource_summary()['num_operations']} ops")
+```
+
+#### 3. **Understand** - Analyze and Explain Circuits
+
+```python
+# Generate comprehensive analysis
+analysis = manipulator.understand(circuit, include_explanation=True, verbose=True)
+
+print(f"Complexity: {analysis['complexity']['level']}")
+print(f"Operations: {analysis['specs']['num_operations']}")
+print(f"Depth: {analysis['specs']['depth']}")
+print(f"Entangling gates: {analysis['complexity']['entangling_gates']}")
+print(f"\nExplanation:\n{analysis['explanation']}")
+
+# Compare two circuits
+comparison = manipulator.compare_circuits(original, optimized, names=("Original", "Optimized"))
+print(f"Operations reduced: {comparison['differences']['operations']}")
+```
+
+#### 4. **Rewrite** - Modify with Natural Language
+
+```python
+# Modify circuit using natural language
+modified = manipulator.rewrite(
+    circuit,
+    "Add a rotation before the CNOT gate"
+)
+
+# Simplify circuit while maintaining functionality
+simplified = manipulator.simplify(circuit)
+```
+
+### Circuit Representation
+
+All manipulation operations work with `CircuitRepresentation` objects that track metadata and transformation history:
+
+```python
+# Generate circuit with metadata
+circuit = generator.generate_circuit("Create a GHZ state")
+
+# Access circuit properties
+print(circuit.description)
+print(circuit.code)
+print(circuit.get_resource_summary())
+print(circuit.get_visualization())
+
+# View transformation history
+print(circuit.transform_history)  # List of all applied transformations
+
+# Clone circuit for experimentation
+circuit_copy = circuit.clone()
+```
+
+### Complete Workflow Example
+
+```python
+from skadi import CircuitGenerator, CircuitManipulator
+
+# Initialize
+generator = CircuitGenerator()
+manipulator = CircuitManipulator()
+
+# 1. Generate
+circuit = generator.generate_circuit("Create a quantum Fourier transform for 3 qubits")
+print(f"Original: {circuit.get_resource_summary()}")
+
+# 2. Analyze
+analysis = manipulator.understand(circuit)
+print(f"Complexity: {analysis['complexity']['level']}")
+
+# 3. Optimize
+optimized = manipulator.optimize(circuit, level="aggressive", num_passes=2)
+print(f"Optimized: {optimized.get_resource_summary()}")
+
+# 4. Compare
+comparison = manipulator.compare_circuits(circuit, optimized)
+print(f"Improvement: {comparison['differences']}")
+
+# 5. Visualize
+print("\nOptimized Circuit:")
+print(optimized.get_visualization())
+```
+
+### Example Script
+
+Run the comprehensive manipulation demo:
+
+```bash
+uv run python examples/circuit_manipulation_demo.py
+```
+
+This demonstrates all four core operations (transform, optimize, understand, rewrite) with various examples.
+
 ## Advanced Usage
 
 ### Get both circuit and code
@@ -190,14 +349,19 @@ print("\nResult:")
 print(circuit())
 ```
 
-### Error handling
+### Using CircuitRepresentation directly
 
 ```python
-try:
-    circuit = generator.generate("Create a quantum circuit")
-    result = circuit()
-except ValueError as e:
-    print(f"Validation error: {e}")
+# Generate with metadata
+circuit = generator.generate_circuit("Create a Bell state")
+
+# Access properties
+specs = circuit.get_specs()
+resources = circuit.get_resource_summary()
+visualization = circuit.get_visualization()
+
+# Track transformations
+print(f"Applied {len(circuit.transform_history)} transformations")
 ```
 
 ## Troubleshooting

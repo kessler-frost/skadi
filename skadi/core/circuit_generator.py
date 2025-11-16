@@ -5,6 +5,7 @@ from typing import Any, Callable, Dict, Optional
 import pennylane as qml
 
 from skadi.config import settings
+from skadi.core.circuit_representation import CircuitRepresentation
 from skadi.engine.llm_client import LLMClient
 from skadi.knowledge.augmenter import KnowledgeAugmenter
 
@@ -262,3 +263,68 @@ Generate valid PennyLane circuit code from this description: {description}"""
         stats = self.knowledge_augmenter.get_retrieval_stats(query)
         stats["knowledge_enabled"] = True
         return stats
+
+    def generate_circuit(
+        self, description: str, use_knowledge: Optional[bool] = None
+    ) -> CircuitRepresentation:
+        """
+        Generate a circuit and return it as a CircuitRepresentation object.
+
+        This method provides the full circuit representation with metadata,
+        code, and transformation tracking capabilities.
+
+        Args:
+            description: Natural language description of the quantum circuit.
+            use_knowledge: Override to enable/disable knowledge augmentation for this call.
+                         If None, uses instance setting.
+
+        Returns:
+            CircuitRepresentation object with qnode, code, and metadata.
+
+        Raises:
+            ValueError: If the generated code is invalid or cannot be executed.
+            Exception: If circuit generation fails.
+
+        Example:
+            >>> generator = CircuitGenerator()
+            >>> circuit = generator.generate_circuit("Create a Bell state")
+            >>> print(circuit.get_specs())
+            >>> print(circuit.get_visualization())
+        """
+        # Determine whether to use knowledge augmentation
+        should_use_knowledge = (
+            use_knowledge if use_knowledge is not None else self.use_knowledge
+        )
+
+        # Get knowledge context if enabled
+        knowledge_context = ""
+        if should_use_knowledge and self.knowledge_augmenter:
+            knowledge_context = self._retrieve_knowledge(description)
+
+        # Generate code with knowledge context
+        code = self.llm_client.generate_circuit_code(description, knowledge_context)
+        self._validate_code(code)
+        qnode = self._execute_code(code)
+
+        # Create circuit representation
+        circuit_repr = CircuitRepresentation(
+            qnode=qnode,
+            code=code,
+            description=description,
+            metadata={
+                "model": self.llm_client.model_id,
+                "use_knowledge": should_use_knowledge,
+                "use_pennylane_kb": (
+                    self.knowledge_augmenter.use_pennylane_kb
+                    if self.knowledge_augmenter
+                    else False
+                ),
+                "use_context7": (
+                    self.knowledge_augmenter.use_context7
+                    if self.knowledge_augmenter
+                    else False
+                ),
+            },
+        )
+
+        return circuit_repr

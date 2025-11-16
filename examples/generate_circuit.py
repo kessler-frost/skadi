@@ -1,5 +1,6 @@
 """Example script demonstrating natural language to PennyLane circuit generation."""
 
+import pennylane as qml
 from dotenv import load_dotenv
 
 from skadi.config import settings
@@ -48,7 +49,7 @@ def main():
 
         # Display circuit structure
         print("\nCircuit drawer output:")
-        print(circuit.qtape)
+        print(qml.draw(circuit)())
 
     except Exception as e:
         print(f"\nError: {str(e)}")
