@@ -1,6 +1,6 @@
 """Tests for Context7 MCP client."""
 
-from skadi.engine.context7_client import Context7Client
+from skadi.knowledge.context7_client import Context7Client
 
 
 class TestContext7Client:
@@ -278,3 +278,119 @@ snippet3
         assert len(called_topics) == 1
         assert "qml.AngleEmbedding" in called_topics[0]
         assert "template" in called_topics[0]
+
+    def test_cache_docs_method(self):
+        """Test manually caching documentation."""
+        client = Context7Client()
+
+        topic = "qml.Hadamard"
+        docs = "Hadamard gate documentation"
+        tokens = 2000
+
+        # Cache the docs
+        client.cache_docs(topic, docs, tokens=tokens)
+
+        # Verify it's cached
+        assert not client.needs_mcp_call(topic, tokens)
+
+        # Retrieve from cache
+        cached_docs = client.get_docs(topic, tokens=tokens)
+        assert cached_docs == docs
+
+    def test_needs_mcp_call(self):
+        """Test checking if MCP call is needed."""
+        client = Context7Client()
+
+        topic = "qml.CNOT"
+        tokens = 2000
+
+        # Should need MCP call when not cached
+        assert client.needs_mcp_call(topic, tokens)
+
+        # Cache some docs
+        client.cache_docs(topic, "CNOT documentation", tokens=tokens)
+
+        # Should not need MCP call when cached
+        assert not client.needs_mcp_call(topic, tokens)
+
+        # Should need MCP call for different token count
+        assert client.needs_mcp_call(topic, tokens=3000)
+
+    def test_get_docs_returns_none_when_not_cached(self):
+        """Test that get_docs returns None when not cached (signals MCP call needed)."""
+        client = Context7Client()
+
+        topic = "qml.RX"
+        docs = client.get_docs(topic)
+
+        # Should return None when not cached
+        assert docs is None
+
+    def test_get_docs_returns_cached_data(self):
+        """Test that get_docs returns cached data when available."""
+        client = Context7Client()
+
+        topic = "qml.RY"
+        test_docs = "RY gate rotates around Y-axis"
+
+        # Cache the docs
+        client.cache_docs(topic, test_docs)
+
+        # Should return cached docs
+        docs = client.get_docs(topic)
+        assert docs == test_docs
+
+    def test_get_context_with_cached_data(self):
+        """Test get_context with cached documentation."""
+        client = Context7Client()
+
+        topic = "qml.Hadamard gates"
+        test_docs = "Hadamard gate documentation content"
+
+        # Cache the docs
+        client.cache_docs(topic, test_docs)
+
+        # Get context should format the docs
+        context = client.get_context(topic)
+
+        assert context != ""
+        assert "## Relevant PennyLane API:" in context
+        assert test_docs in context
+
+    def test_get_context_without_cached_data(self):
+        """Test get_context returns empty string when not cached."""
+        client = Context7Client()
+
+        topic = "qml.CNOT gates"
+
+        # Get context should return empty string when not cached
+        context = client.get_context(topic)
+
+        assert context == ""
+
+    def test_custom_library_id(self):
+        """Test initialization with custom library ID."""
+        custom_id = "/custom/library"
+        client = Context7Client(library_id=custom_id)
+
+        assert client.library_id == custom_id
+
+    def test_fetch_docs_compatibility(self):
+        """Test fetch_docs method for backward compatibility."""
+        client = Context7Client()
+
+        topic = "qml.device"
+        test_docs = "Device documentation"
+
+        # Cache docs first
+        client.cache_docs(topic, test_docs)
+
+        # fetch_docs should return cached docs
+        docs = client.fetch_docs(topic)
+        assert docs == test_docs
+
+    def test_resolve_library_id_static_method(self):
+        """Test resolve_library_id static method."""
+        # This is a placeholder method that returns None
+        result = Context7Client.resolve_library_id("pennylane")
+        assert result is None  # Signals that MCP call is needed

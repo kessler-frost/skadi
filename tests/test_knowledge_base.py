@@ -3,7 +3,6 @@
 import os
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
 
 import pytest
 
@@ -101,12 +100,18 @@ Basic Gates:
         assert kb.knowledge is not None
         assert kb.vector_db is not None
 
-    def test_initialization_without_api_key(self, temp_db):
+    def test_initialization_without_api_key(self, temp_db, monkeypatch):
         """Test that initialization fails without API key."""
-        # Mock os.getenv in the knowledge_base module to return None
-        with patch("skadi.engine.knowledge_base.os.getenv", return_value=None):
-            with pytest.raises(ValueError, match="OpenAI API key not found"):
-                PennyLaneKnowledge(db_uri=temp_db)
+        # Clear the environment variable
+        monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+
+        # Mock the settings to return None for openai_api_key
+        from skadi import config
+
+        monkeypatch.setattr(config.settings, "openai_api_key", None)
+
+        with pytest.raises(ValueError, match="OpenAI API key not found"):
+            PennyLaneKnowledge(db_uri=temp_db)
 
     def test_add_text(self, knowledge_base):
         """Test adding text content to knowledge base."""

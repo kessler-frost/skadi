@@ -9,22 +9,15 @@ from skadi.engine.llm_client import LLMClient
 class TestLLMClient:
     """Tests for LLM client."""
 
-    @pytest.mark.skip(
-        reason="Test incompatible with current test setup due to .env loading in functional tests"
-    )
     def test_init_without_api_key_raises_error(self, monkeypatch):
-        """Test that initializing without API key raises ValueError.
-
-        Note: This test is skipped because load_dotenv() is called in other test files,
-        making it impossible to test the "no API key" scenario in the same pytest session.
-        The actual validation is tested through the Settings class.
-        """
-        # Use monkeypatch to ensure environment is clean
+        """Test that initializing without API key raises ValueError."""
+        # Clear the environment variable
         monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
-        # Also mock os.getenv to guarantee it returns None
-        monkeypatch.setattr(
-            "skadi.engine.llm_client.os.getenv", lambda key, default=None: None
-        )
+
+        # Mock the settings to return None for openrouter_api_key
+        from skadi import config
+
+        monkeypatch.setattr(config.settings, "openrouter_api_key", None)
 
         with pytest.raises(ValueError, match="OpenRouter API key not found"):
             LLMClient()

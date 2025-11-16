@@ -73,14 +73,99 @@ print(result)
 
 ## Architecture
 
+### Core Components
+
 - **LLM Client** (`skadi/engine/llm_client.py`) - OpenRouter API interface using Claude Haiku 4.5
 - **Circuit Generator** (`skadi/core/circuit_generator.py`) - Code generation, validation, and execution
 
-## Examples
+### Knowledge System
+
+Skadi uses a dual knowledge system for enhanced circuit generation:
+
+1. **PennyLane Knowledge Base** (`skadi/knowledge/pennylane_kb.py`)
+   - Vector-based semantic search using LanceDB
+   - Stores conceptual quantum computing knowledge
+   - Provides understanding of algorithms and patterns
+   - Requires `OPENAI_API_KEY` for embeddings
+
+2. **Context7 Client** (`skadi/knowledge/context7_client.py`)
+   - Dynamic PennyLane API documentation via MCP
+   - Fetches up-to-date syntax and examples
+   - Caches results to minimize API calls
+   - Works in Claude Code environment
+
+3. **Knowledge Augmenter** (`skadi/knowledge/augmenter.py`)
+   - Combines both knowledge sources
+   - Enriches prompts with relevant context
+   - Configurable via settings
+
+## Knowledge Base Setup
+
+### Option 1: Using Context7 (Recommended)
+
+Context7 provides dynamic access to PennyLane documentation via MCP (requires Claude Code environment):
+
+```python
+from skadi import CircuitGenerator
+
+# Knowledge augmentation is enabled by default
+generator = CircuitGenerator()
+circuit = generator.generate("Create a Bell state circuit")
+```
+
+### Option 2: Using PennyLane Knowledge Base
+
+For conceptual understanding and algorithm patterns:
 
 ```bash
-uv run python examples/generate_circuit.py
+# 1. Scrape PennyLane documentation
+uv run python examples/scrape_docs.py
+
+# 2. Use knowledge-augmented generation
+uv run python examples/use_knowledge_base.py
 ```
+
+Requires `OPENAI_API_KEY` for embeddings.
+
+### Dual Knowledge System
+
+Combine both for best results:
+
+```python
+from skadi import CircuitGenerator
+
+generator = CircuitGenerator(
+    use_knowledge=True,       # Enable knowledge augmentation
+    use_pennylane_kb=True,    # Use PennyLane KB for concepts
+    use_context7=True,        # Use Context7 for API docs
+)
+```
+
+See `examples/enhanced_generation_demo.py` for a full demonstration.
+
+## Examples
+
+All examples are documented in [`examples/README.md`](examples/README.md):
+
+```bash
+# Basic circuit generation
+uv run python examples/generate_circuit.py
+
+# Knowledge base demo
+uv run python examples/use_knowledge_base.py
+
+# Enhanced generation with dual knowledge
+uv run python examples/enhanced_generation_demo.py
+
+# Documentation scraping
+uv run python examples/scrape_docs.py
+
+# Context7 MCP demos
+PYTHONPATH=. uv run python examples/context7_mcp_demo.py
+PYTHONPATH=. uv run python examples/context7_live_mcp_example.py
+```
+
+See [docs/CONTEXT7_MCP_INTEGRATION.md](docs/CONTEXT7_MCP_INTEGRATION.md) for detailed documentation on the Context7 MCP integration.
 
 ## Development
 

@@ -1,6 +1,5 @@
 """LLM client for natural language to PennyLane circuit generation."""
 
-import os
 from typing import Optional
 
 from agno.agent import Agent
@@ -30,11 +29,11 @@ class LLMClient:
                 "or pass api_key to LLMClient constructor."
             )
 
-        # Set the API key in the environment for OpenRouter
-        os.environ["OPENROUTER_API_KEY"] = self.api_key
-
         self.model_id = model or settings.openrouter_model
-        self.agent = Agent(model=OpenRouter(id=self.model_id), markdown=False)
+        # Pass API key directly to OpenRouter instead of modifying environment
+        self.agent = Agent(
+            model=OpenRouter(id=self.model_id, api_key=self.api_key), markdown=False
+        )
 
     def generate_circuit_code(
         self, description: str, knowledge_context: str = ""

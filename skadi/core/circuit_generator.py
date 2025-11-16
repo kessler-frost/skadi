@@ -244,7 +244,7 @@ Generate valid PennyLane circuit code from this description: {description}"""
         circuit = self._execute_code(code)
         return circuit, code
 
-    def get_knowledge_stats(self, query: str) -> Dict[str, any]:
+    def get_knowledge_stats(self, query: str) -> Dict[str, Any]:
         """
         Get statistics about knowledge retrieval for a query.
 

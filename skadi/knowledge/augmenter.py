@@ -1,6 +1,6 @@
 """Knowledge augmenter that combines multiple knowledge sources."""
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from skadi.config import settings
 from skadi.knowledge.context7_client import Context7Client
@@ -160,7 +160,7 @@ Now generate the code for: {user_query}"""
 
         return enhanced_prompt
 
-    def get_retrieval_stats(self, query: str) -> Dict[str, any]:
+    def get_retrieval_stats(self, query: str) -> Dict[str, Any]:
         """
         Get statistics about knowledge retrieval for a query.
 
@@ -184,8 +184,10 @@ Now generate the code for: {user_query}"""
 
         if self.context7_client:
             stats["sources_enabled"].append("context7")
-            api_results = self.context7_client.get_api_docs(query, top_k=5)
-            stats["context7_results"] = len(api_results)
+            # Check if documentation is cached for this query
+            api_context = self.context7_client.get_context(query)
+            stats["context7_results"] = 1 if api_context else 0
+            stats["context7_cached"] = not self.context7_client.needs_mcp_call(query)
 
         return stats
 

@@ -5,7 +5,6 @@ with LanceDB as the vector store. It's optimized for quantum computing concepts,
 PennyLane API documentation, and code examples.
 """
 
-import os
 from pathlib import Path
 from typing import Optional
 
@@ -56,19 +55,17 @@ class PennyLaneKnowledge:
                 "or pass api_key to PennyLaneKnowledge constructor."
             )
 
-        # Set the API key in environment for OpenAI embedder
-        os.environ["OPENAI_API_KEY"] = self.api_key
-
         self.db_uri = db_uri or settings.lancedb_uri
         self.table_name = table_name or settings.lancedb_table
         self.embedding_model = embedding_model or settings.embedding_model
         self.chunk_size = chunk_size or settings.chunk_size
         self.chunk_overlap = chunk_overlap or settings.chunk_overlap
 
-        # Initialize embedder
+        # Initialize embedder with API key passed directly
         self.embedder = OpenAIEmbedder(
             id=self.embedding_model,
             dimensions=1536,  # text-embedding-3-small produces 1536-dim vectors
+            api_key=self.api_key,
         )
 
         # Initialize LanceDB vector store with hybrid search

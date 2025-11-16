@@ -342,7 +342,10 @@ class PennyLaneDocScraper:
         print(f"Saved {len(chunks)} chunks to {output_file}")
 
     async def scrape_documentation(
-        self, start_urls: list[str] | None = None, max_pages: int | None = None
+        self,
+        start_urls: list[str] | None = None,
+        max_pages: int | None = None,
+        follow_links: bool = False,
     ) -> None:
         """
         Scrape PennyLane documentation starting from given URLs.
@@ -357,6 +360,7 @@ class PennyLaneDocScraper:
         Args:
             start_urls: List of URLs to start crawling (default: main docs page)
             max_pages: Maximum number of pages to scrape (None = unlimited)
+            follow_links: Whether to follow internal links for recursive crawling (default: False)
         """
         if start_urls is None:
             start_urls = [f"{self.base_url}/en/stable/"]
@@ -395,10 +399,10 @@ class PennyLaneDocScraper:
                     print(f"Progress: {pages_scraped}/{max_pages or '∞'} pages")
 
                     # Add internal links to queue (if following links)
-                    # Note: Uncomment the following lines to crawl linked pages
-                    # for link in result["internal_links"]:
-                    #     if link not in self.visited_urls and link not in url_queue:
-                    #         url_queue.append(link)
+                    if follow_links:
+                        for link in result["internal_links"]:
+                            if link not in self.visited_urls and link not in url_queue:
+                                url_queue.append(link)
 
                 # Rate limiting
                 await asyncio.sleep(self.rate_limit_seconds)
@@ -448,6 +452,7 @@ async def scrape_pennylane_docs(
     output_dir: str = "data/pennylane_docs",
     start_urls: list[str] | None = None,
     max_pages: int | None = 10,
+    follow_links: bool = False,
 ) -> None:
     """
     Quick function to scrape PennyLane documentation.
@@ -456,9 +461,12 @@ async def scrape_pennylane_docs(
         output_dir: Where to save the chunks
         start_urls: URLs to start scraping from
         max_pages: Maximum pages to scrape
+        follow_links: Whether to follow internal links for recursive crawling
     """
     scraper = PennyLaneDocScraper(output_dir=output_dir)
-    await scraper.scrape_documentation(start_urls=start_urls, max_pages=max_pages)
+    await scraper.scrape_documentation(
+        start_urls=start_urls, max_pages=max_pages, follow_links=follow_links
+    )
     stats = scraper.get_statistics()
     print("\nStatistics:")
     print(json.dumps(stats, indent=2))

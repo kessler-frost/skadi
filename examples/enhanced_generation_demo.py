@@ -18,8 +18,7 @@ generator = CircuitGenerator(
     model="anthropic/claude-haiku-4.5",
     use_knowledge=True,  # Enable knowledge augmentation
     use_pennylane_kb=True,  # Use PennyLane knowledge base
-    use_context7=True,  # Use Context7 API docs (requires ANTHROPIC_API_KEY)
-    anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+    use_context7=True,  # Use Context7 API docs
 )
 
 
@@ -135,4 +134,3 @@ if __name__ == "__main__":
         print(f"\nError during demo: {e}")
         print("\nMake sure you have set:")
         print("  - OPENROUTER_API_KEY environment variable")
-        print("  - ANTHROPIC_API_KEY environment variable (optional, for Context7)")

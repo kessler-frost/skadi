@@ -1,6 +1,6 @@
 """PennyLane knowledge base for quantum computing concepts and algorithms."""
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 class PennyLaneKnowledge:
@@ -178,7 +178,7 @@ class PennyLaneKnowledge:
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
-    def _compute_relevance(self, query: str, name: str, info: Dict[str, any]) -> float:
+    def _compute_relevance(self, query: str, name: str, info: Dict[str, Any]) -> float:
         """
         Compute relevance score between query and knowledge entry.
 
