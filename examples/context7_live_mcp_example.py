@@ -6,11 +6,9 @@ to fetch real PennyLane documentation and use it for circuit generation.
 NOTE: This requires running in Claude Code environment with MCP access.
 """
 
-import sys
-from pathlib import Path
-
-# Add project root to path
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Note: This example file should be run using uv:
+# uv run examples/context7_live_mcp_example.py
+# This ensures the package is properly installed and available for import.
 
 from skadi.knowledge.context7_client import Context7Client
 

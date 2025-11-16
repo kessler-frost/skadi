@@ -8,13 +8,12 @@ This example demonstrates how the CircuitGenerator uses both:
 The knowledge sources work together to improve circuit generation accuracy.
 """
 
-import os
-
+from skadi.config import settings
 from skadi.core.circuit_generator import CircuitGenerator
 
 # Initialize generator with dual knowledge system enabled
 generator = CircuitGenerator(
-    api_key=os.getenv("OPENROUTER_API_KEY"),
+    api_key=settings.openrouter_api_key,
     model="anthropic/claude-haiku-4.5",
     use_knowledge=True,  # Enable knowledge augmentation
     use_pennylane_kb=True,  # Use PennyLane knowledge base

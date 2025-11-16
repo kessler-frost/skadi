@@ -25,6 +25,13 @@ Skadi generates PennyLane quantum circuits from natural language using LLM orche
 - Break down complex tasks into smaller, parallelizable units
 - Use TodoWrite tool to track progress on multi-step tasks
 
+### Code Standards
+
+- **Path Handling**: Always use `pathlib.Path` instead of `os.path.*` functions
+- **Module Imports**: Avoid using `sys.path.insert()` or modifying `sys.path` - use proper package installation instead
+- **Configuration**: Always use the `settings` object from `skadi.config` instead of `os.getenv()` or `os.environ`
+- **Testing**: Unit tests should NOT require API keys - only functional/integration tests should require `OPENROUTER_API_KEY`
+
 ### Project Structure
 
 ```

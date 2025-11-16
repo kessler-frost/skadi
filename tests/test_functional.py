@@ -1,6 +1,5 @@
 """Functional tests for circuit generation end-to-end."""
 
-import os
 from pathlib import Path
 
 import numpy as np
@@ -8,6 +7,7 @@ import pytest
 from dotenv import load_dotenv
 
 from skadi import CircuitGenerator
+from skadi.config import settings
 
 # Load environment variables from project root
 project_root = Path(__file__).parent.parent
@@ -16,7 +16,7 @@ load_dotenv(env_file)
 
 
 @pytest.mark.skipif(
-    not os.getenv("OPENROUTER_API_KEY"),
+    not settings.openrouter_api_key,
     reason="OPENROUTER_API_KEY not set - skipping functional tests",
 )
 class TestCircuitGenerationFunctional:

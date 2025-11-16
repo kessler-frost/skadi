@@ -16,11 +16,10 @@ The script will:
 """
 
 import asyncio
-import sys
-from pathlib import Path
 
-# Add parent directory to path to import skadi
-sys.path.insert(0, str(Path(__file__).parent.parent))
+# Note: This example file should be run using uv:
+# uv run examples/scrape_docs.py
+# This ensures the package is properly installed and available for import.
 
 from skadi.utils.doc_scraper import PennyLaneDocScraper
 
@@ -103,6 +102,7 @@ async def main():
         print(f"Partial results saved to: {output_dir}")
     except Exception as e:
         print(f"\n\nError during scraping: {e}")
+        import sys
         import traceback
 
         traceback.print_exc()

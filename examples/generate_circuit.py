@@ -1,8 +1,8 @@
 """Example script demonstrating natural language to PennyLane circuit generation."""
 
-import os
 from dotenv import load_dotenv
 
+from skadi.config import settings
 from skadi.core.circuit_generator import CircuitGenerator
 
 
@@ -12,7 +12,7 @@ def main():
     load_dotenv()
 
     # Verify API key is set
-    if not os.getenv("OPENROUTER_API_KEY"):
+    if not settings.openrouter_api_key:
         print("Error: OPENROUTER_API_KEY environment variable not set.")
         print("Please create a .env file with your OpenRouter API key:")
         print("OPENROUTER_API_KEY=your_api_key_here")

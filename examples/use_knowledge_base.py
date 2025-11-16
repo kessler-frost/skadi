@@ -7,11 +7,11 @@ This script shows:
 4. How to integrate with Agno agents
 """
 
-import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 
+from skadi.config import settings
 from skadi.engine.knowledge_base import (
     PennyLaneKnowledge,
     get_knowledge_for_agent,
@@ -234,7 +234,7 @@ response = agent.run("What devices does PennyLane support?")
 def main():
     """Run all examples."""
     # Check if API key is set
-    if not os.getenv("OPENAI_API_KEY"):
+    if not settings.openai_api_key:
         print("Error: OPENAI_API_KEY environment variable not set.")
         print("Please set it in your .env file or environment.")
         return
