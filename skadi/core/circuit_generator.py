@@ -4,30 +4,74 @@ from typing import Any, Callable, Dict, Optional
 
 import pennylane as qml
 
+from skadi.config import settings
 from skadi.engine.llm_client import LLMClient
+from skadi.knowledge.augmenter import KnowledgeAugmenter
 
 
 class CircuitGenerator:
-    """Generate PennyLane quantum circuits from natural language descriptions."""
+    """
+    Generate PennyLane quantum circuits from natural language descriptions.
+
+    Enhanced with dual knowledge system:
+    - PennyLaneKnowledge: Conceptual understanding of quantum algorithms and patterns
+    - Context7Client: API-specific documentation and code examples
+    """
 
     def __init__(
-        self, api_key: Optional[str] = None, model: str = "anthropic/claude-haiku-4.5"
+        self,
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        use_knowledge: Optional[bool] = None,
+        use_pennylane_kb: Optional[bool] = None,
+        use_context7: Optional[bool] = None,
     ):
         """
         Initialize the circuit generator.
 
         Args:
-            api_key: OpenRouter API key. If None, will use OPENROUTER_API_KEY from environment.
-            model: The model to use for generation. Defaults to Claude Haiku 4.5.
+            api_key: OpenRouter API key. If None, uses settings.openrouter_api_key.
+            model: The model to use for generation. If None, uses settings.openrouter_model.
+            use_knowledge: Whether to use knowledge augmentation. If None, uses settings.use_knowledge.
+            use_pennylane_kb: Whether to use PennyLane knowledge base. If None, uses settings.use_pennylane_kb.
+            use_context7: Whether to use Context7 API docs. If None, uses settings.use_context7.
         """
-        self.llm_client = LLMClient(api_key=api_key, model=model)
+        # Use settings as defaults, allow constructor overrides
+        self.llm_client = LLMClient(
+            api_key=api_key,
+            model=model or settings.openrouter_model,
+        )
+        self.use_knowledge = (
+            use_knowledge if use_knowledge is not None else settings.use_knowledge
+        )
 
-    def generate(self, description: str) -> Callable:
+        # Initialize knowledge augmenter if enabled
+        if self.use_knowledge:
+            self.knowledge_augmenter = KnowledgeAugmenter(
+                use_pennylane_kb=use_pennylane_kb
+                if use_pennylane_kb is not None
+                else settings.use_pennylane_kb,
+                use_context7=use_context7
+                if use_context7 is not None
+                else settings.use_context7,
+            )
+        else:
+            self.knowledge_augmenter = None
+
+    def generate(
+        self, description: str, use_knowledge: Optional[bool] = None
+    ) -> Callable:
         """
         Generate a PennyLane circuit from natural language description.
 
+        Uses dual knowledge system to enhance generation:
+        1. PennyLaneKnowledge: Provides conceptual understanding of quantum patterns
+        2. Context7Client: Provides API-specific syntax and examples
+
         Args:
             description: Natural language description of the quantum circuit.
+            use_knowledge: Override to enable/disable knowledge augmentation for this call.
+                         If None, uses instance setting.
 
         Returns:
             A PennyLane QNode function representing the circuit.
@@ -36,8 +80,18 @@ class CircuitGenerator:
             ValueError: If the generated code is invalid or cannot be executed.
             Exception: If circuit generation fails.
         """
-        # Generate the circuit code using LLM
-        code = self.llm_client.generate_circuit_code(description)
+        # Determine whether to use knowledge augmentation
+        should_use_knowledge = (
+            use_knowledge if use_knowledge is not None else self.use_knowledge
+        )
+
+        # Get knowledge context if enabled
+        knowledge_context = ""
+        if should_use_knowledge and self.knowledge_augmenter:
+            knowledge_context = self._retrieve_knowledge(description)
+
+        # Generate the circuit code using LLM with knowledge context
+        code = self.llm_client.generate_circuit_code(description, knowledge_context)
 
         # Validate the generated code
         self._validate_code(code)
@@ -46,6 +100,40 @@ class CircuitGenerator:
         circuit = self._execute_code(code)
 
         return circuit
+
+    def _retrieve_knowledge(self, description: str) -> str:
+        """
+        Retrieve and combine knowledge from all sources.
+
+        Args:
+            description: Circuit description query.
+
+        Returns:
+            Combined knowledge context string.
+        """
+        if not self.knowledge_augmenter:
+            return ""
+
+        # Use augmenter to get combined context from both sources
+        base_prompt = """You are an expert quantum computing assistant specialized in PennyLane.
+Generate valid PennyLane circuit code from this description: {description}"""
+
+        # This will query both PennyLane KB and Context7, combine them, and format
+        enhanced_prompt = self.knowledge_augmenter.augment_prompt(
+            user_query=description,
+            base_prompt=base_prompt,
+            max_knowledge_tokens=settings.max_knowledge_tokens,
+        )
+
+        # Extract just the knowledge context portion
+        # (The augmenter includes it in the full prompt, but we want just the context)
+        if "KNOWLEDGE CONTEXT:" in enhanced_prompt:
+            parts = enhanced_prompt.split("KNOWLEDGE CONTEXT:")
+            if len(parts) > 1:
+                context_section = parts[1].split("---")[0].strip()
+                return context_section
+
+        return ""
 
     def _validate_code(self, code: str) -> None:
         """
@@ -122,12 +210,16 @@ class CircuitGenerator:
         except Exception as e:
             raise ValueError(f"Error executing generated code: {str(e)}")
 
-    def generate_with_code(self, description: str) -> tuple[Callable, str]:
+    def generate_with_code(
+        self, description: str, use_knowledge: Optional[bool] = None
+    ) -> tuple[Callable, str]:
         """
         Generate a circuit and also return the generated code.
 
         Args:
             description: Natural language description of the quantum circuit.
+            use_knowledge: Override to enable/disable knowledge augmentation for this call.
+                         If None, uses instance setting.
 
         Returns:
             A tuple of (circuit_function, generated_code).
@@ -136,7 +228,37 @@ class CircuitGenerator:
             ValueError: If the generated code is invalid or cannot be executed.
             Exception: If circuit generation fails.
         """
-        code = self.llm_client.generate_circuit_code(description)
+        # Determine whether to use knowledge augmentation
+        should_use_knowledge = (
+            use_knowledge if use_knowledge is not None else self.use_knowledge
+        )
+
+        # Get knowledge context if enabled
+        knowledge_context = ""
+        if should_use_knowledge and self.knowledge_augmenter:
+            knowledge_context = self._retrieve_knowledge(description)
+
+        # Generate code with knowledge context
+        code = self.llm_client.generate_circuit_code(description, knowledge_context)
         self._validate_code(code)
         circuit = self._execute_code(code)
         return circuit, code
+
+    def get_knowledge_stats(self, query: str) -> Dict[str, any]:
+        """
+        Get statistics about knowledge retrieval for a query.
+
+        Useful for debugging and understanding what knowledge is being used.
+
+        Args:
+            query: Circuit description query.
+
+        Returns:
+            Dictionary with retrieval statistics, or empty dict if knowledge disabled.
+        """
+        if not self.knowledge_augmenter:
+            return {"knowledge_enabled": False}
+
+        stats = self.knowledge_augmenter.get_retrieval_stats(query)
+        stats["knowledge_enabled"] = True
+        return stats

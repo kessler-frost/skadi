@@ -1,8 +1,8 @@
-# Skadi - Quantum Circuit Generation and Manipulation
+# Skadi - Quantum Circuit Generation
 
 ## Project Overview
 
-Skadi is a quantum circuit generation and manipulation tool that enables natural language-based operations on quantum circuits using PennyLane and Claude AI via OpenRouter.
+Skadi generates PennyLane quantum circuits from natural language using LLM orchestration with dual knowledge sources for enhanced accuracy.
 
 ## Development Guidelines
 
@@ -21,7 +21,7 @@ Skadi is a quantum circuit generation and manipulation tool that enables natural
 
 ### Planning & Execution
 
-- **ALWAYS use multiple agents in parallel for implementation** - this is required for all plans and put it in the plan on how you'll do it
+- **ALWAYS use multiple agents in parallel for implementation** - this is required for all plans
 - Break down complex tasks into smaller, parallelizable units
 - Use TodoWrite tool to track progress on multi-step tasks
 
@@ -29,29 +29,39 @@ Skadi is a quantum circuit generation and manipulation tool that enables natural
 
 ```
 skadi/
-├── skadi/              # Main package
-│   ├── core/          # Core circuit generation and manipulation logic
-│   ├── engine/        # LLM client for natural language processing
-│   └── utils/         # Utilities and helpers
+├── skadi/
+│   ├── core/          # Circuit generation and validation
+│   ├── engine/        # LLM client and knowledge base (Agno RAG)
+│   ├── knowledge/     # Dual knowledge sources (Agno KB + Context7)
+│   └── utils/         # Documentation scraper (Crawl4AI)
 ├── tests/             # Test suite
 ├── examples/          # Example scripts
-├── .claude/           # Claude Code configuration
-└── pyproject.toml     # Project dependencies (managed by uv)
+└── data/              # LanceDB vector storage and scraped docs
 ```
-
-### Key Features
-
-1. **Circuit Generation**: Create PennyLane circuits from natural language descriptions
-2. **Circuit Manipulation**: Merge, transform, optimize, and modify quantum circuits (planned)
-3. **Circuit Analysis**: Understand structure and reverse engineer circuits (planned)
-4. **Natural Language Interface**: Powered by Claude Haiku 4.5 via OpenRouter
-5. **Code Validation**: Automatic validation of generated PennyLane code
-6. **Local Execution**: Run circuits on local quantum simulators
 
 ### Technologies
 
 - **PennyLane**: Quantum circuit framework
-- **Agno**: LLM orchestration framework
-- **OpenRouter**: API gateway for Claude AI
+- **Agno**: LLM orchestration and RAG framework
+- **OpenRouter**: LLM API gateway (Claude Haiku 4.5)
+- **LanceDB**: Vector database for embeddings
+- **Context7**: Static API documentation knowledge base
+- **Crawl4AI**: Documentation scraping
+- **Pydantic Settings**: Configuration management
 - **Ruff**: Linting and formatting
-- **uv**: Fast Python package manager
+- **uv**: Package manager
+
+### Knowledge Architecture
+
+Dual knowledge sources enhance circuit generation:
+
+1. **Agno Knowledge Base** (dynamic RAG)
+   - Vector similarity search over scraped PennyLane docs
+   - LanceDB storage with OpenAI embeddings
+   - Hybrid search (vector + keyword)
+
+2. **Context7 Client** (static API docs)
+   - Direct API documentation access
+   - Minimal latency for common queries
+
+Both sources are combined via `KnowledgeAugmenter` for optimal context.

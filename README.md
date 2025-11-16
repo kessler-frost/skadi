@@ -15,6 +15,44 @@ cp .env.example .env
 
 Get an API key from [OpenRouter](https://openrouter.ai/).
 
+## Configuration
+
+Skadi uses `pydantic-settings` for configuration management. All settings are loaded from environment variables or a `.env` file.
+
+### Required Settings
+
+- `OPENROUTER_API_KEY` - Your OpenRouter API key (get from https://openrouter.ai/)
+
+### Optional Settings
+
+- `OPENROUTER_MODEL` - Model to use (default: `anthropic/claude-haiku-4.5`)
+- `OPENAI_API_KEY` - OpenAI API key for embeddings (required for knowledge base features)
+- `USE_KNOWLEDGE` - Enable knowledge augmentation (default: `true`)
+- `USE_PENNYLANE_KB` - Enable PennyLane knowledge base (default: `true`)
+- `USE_CONTEXT7` - Enable Context7 integration (default: `true`)
+- `MAX_KNOWLEDGE_TOKENS` - Maximum tokens for knowledge retrieval (default: `2000`)
+
+See `.env.example` for all available configuration options with descriptions.
+
+### Using Settings in Code
+
+```python
+from skadi import settings
+
+# Access configuration values
+print(f"Using model: {settings.openrouter_model}")
+print(f"Knowledge enabled: {settings.use_knowledge}")
+
+# Create custom settings instance
+from skadi import Settings
+
+custom_settings = Settings(
+    openrouter_api_key="your-key",
+    openrouter_model="anthropic/claude-sonnet-3.5",
+    use_knowledge=False
+)
+```
+
 ## Usage
 
 ```python

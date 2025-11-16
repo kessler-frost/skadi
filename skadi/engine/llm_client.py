@@ -6,24 +6,24 @@ from typing import Optional
 from agno.agent import Agent
 from agno.models.openrouter import OpenRouter
 
+from skadi.config import settings
+
 
 class LLMClient:
     """Client for interfacing with LLM via OpenRouter."""
 
-    def __init__(
-        self, api_key: Optional[str] = None, model: str = "anthropic/claude-haiku-4.5"
-    ):
+    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
         """
         Initialize the LLM client.
 
         Args:
-            api_key: OpenRouter API key. If None, will use OPENROUTER_API_KEY from environment.
-            model: The model to use for generation. Defaults to Claude Haiku 4.5.
+            api_key: OpenRouter API key. If None, uses settings.openrouter_api_key.
+            model: The model to use for generation. If None, uses settings.openrouter_model.
 
         Raises:
-            ValueError: If API key is not provided and not found in environment.
+            ValueError: If API key is not provided and not found in settings.
         """
-        self.api_key = api_key or os.getenv("OPENROUTER_API_KEY")
+        self.api_key = api_key or settings.openrouter_api_key
         if not self.api_key:
             raise ValueError(
                 "OpenRouter API key not found. Please set OPENROUTER_API_KEY environment variable "
@@ -33,15 +33,18 @@ class LLMClient:
         # Set the API key in the environment for OpenRouter
         os.environ["OPENROUTER_API_KEY"] = self.api_key
 
-        self.model_id = model
-        self.agent = Agent(model=OpenRouter(id=model), markdown=False)
+        self.model_id = model or settings.openrouter_model
+        self.agent = Agent(model=OpenRouter(id=self.model_id), markdown=False)
 
-    def generate_circuit_code(self, description: str) -> str:
+    def generate_circuit_code(
+        self, description: str, knowledge_context: str = ""
+    ) -> str:
         """
         Generate PennyLane circuit code from natural language description.
 
         Args:
             description: Natural language description of the quantum circuit.
+            knowledge_context: Optional knowledge context to augment the prompt.
 
         Returns:
             Python code string containing PennyLane circuit implementation.
@@ -49,7 +52,8 @@ class LLMClient:
         Raises:
             Exception: If the API call fails.
         """
-        prompt = f"""You are an expert quantum computing assistant specialized in PennyLane.
+        # Base prompt template
+        base_prompt = """You are an expert quantum computing assistant specialized in PennyLane.
 Generate valid PennyLane circuit code from this description: {description}
 
 Guidelines:
@@ -72,9 +76,24 @@ def circuit():
     # Circuit operations here
     qml.Hadamard(wires=0)
     qml.CNOT(wires=[0, 1])
-    return qml.state()
+    return qml.state()"""
+
+        # If knowledge context is provided, augment the prompt
+        if knowledge_context:
+            prompt = f"""{base_prompt}
+
+---
+
+**KNOWLEDGE CONTEXT:**
+The following information may help you generate the circuit:
+
+{knowledge_context}
+
+---
 
 Now generate the code for: {description}"""
+        else:
+            prompt = f"{base_prompt}\n\nNow generate the code for: {description}"
 
         try:
             # Use the agent to generate the response
