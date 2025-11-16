@@ -1,9 +1,19 @@
 [project]
 name = "skadi"
 version = "0.1.0"
-description = "Manipulate quantum circuits using natural language"
+description = "Generate and manipulate quantum circuits using natural language"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "agno>=2.2.13",
+    "openai>=2.8.0",
     "pennylane>=0.43.1",
+    "python-dotenv>=1.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.4.0",
+    "pytest>=8.0.0",
+    "ruff>=0.14.5",
 ]
