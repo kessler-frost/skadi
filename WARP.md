@@ -16,7 +16,18 @@ The project uses:
 
 ### Environment Setup
 
-When setting up the project for the first time, use `uv` for Python environment management and dependency installation (once a pyproject.toml or requirements file is added).
+The project uses `uv` for Python environment management. Virtual environment is created at `.venv/`.
+
+**Setup:**
+```bash
+uv sync                # Install dependencies from pyproject.toml and create .venv
+source .venv/bin/activate  # Activate virtual environment
+```
+
+**Dependency management:**
+- Add dependencies: `uv add <package-name>`
+- Add dev dependencies: `uv add --dev <package-name>`
+- Lock file: `uv.lock` (should be committed to version control)
 
 ### Git Workflow
 

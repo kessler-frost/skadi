@@ -1,7 +1,9 @@
 [project]
 name = "skadi"
 version = "0.1.0"
-description = "Add your description here"
+description = "Manipulate quantum circuits using natural language"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pennylane>=0.43.1",
+]
