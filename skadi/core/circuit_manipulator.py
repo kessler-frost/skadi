@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional
 from skadi.config import settings
 from skadi.core.circuit_representation import CircuitRepresentation
 from skadi.engine.llm_client import LLMClient
-from skadi.knowledge.augmenter import KnowledgeAugmenter
 from skadi.manipulation.analyzer import CircuitAnalyzer
 from skadi.manipulation.optimizer import CircuitOptimizer
 from skadi.manipulation.rewriter import CircuitRewriter
@@ -39,14 +38,12 @@ class CircuitManipulator:
         self,
         api_key: Optional[str] = None,
         model: Optional[str] = None,
-        use_knowledge: bool = True,
     ):
         """Initialize the circuit manipulator.
 
         Args:
             api_key: LLM API key (for LLM-based operations). If None, uses settings.
             model: Model to use. If None, uses settings.
-            use_knowledge: Enable knowledge augmentation for LLM operations
         """
         # Initialize LLM client for rewriting and analysis
         self.llm_client = LLMClient(
@@ -54,19 +51,11 @@ class CircuitManipulator:
             model=model or settings.skadi_model,
         )
 
-        # Initialize knowledge augmenter if enabled
-        self.knowledge_augmenter = None
-        if use_knowledge:
-            self.knowledge_augmenter = KnowledgeAugmenter(
-                use_pennylane_kb=settings.use_pennylane_kb,
-                use_context7=settings.use_context7,
-            )
-
         # Initialize manipulation components
         self.transformer = CircuitTransformer()
         self.optimizer = CircuitOptimizer()
-        self.analyzer = CircuitAnalyzer(self.llm_client, self.knowledge_augmenter)
-        self.rewriter = CircuitRewriter(self.llm_client, self.knowledge_augmenter)
+        self.analyzer = CircuitAnalyzer(self.llm_client)
+        self.rewriter = CircuitRewriter(self.llm_client)
 
     def optimize(
         self,
@@ -133,14 +122,12 @@ class CircuitManipulator:
         self,
         circuit: CircuitRepresentation,
         modification_request: str,
-        use_knowledge: bool = True,
     ) -> CircuitRepresentation:
         """Rewrite a circuit based on natural language request.
 
         Args:
             circuit: Circuit to modify
             modification_request: Natural language description of changes
-            use_knowledge: Use knowledge augmentation
 
         Returns:
             Modified circuit
@@ -152,11 +139,7 @@ class CircuitManipulator:
             ...     "Add a rotation before the CNOT gate"
             ... )
         """
-        return self.rewriter.rewrite(
-            circuit,
-            modification_request,
-            use_knowledge=use_knowledge,
-        )
+        return self.rewriter.rewrite(circuit, modification_request)
 
     def compare_circuits(
         self,

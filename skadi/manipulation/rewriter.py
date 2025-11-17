@@ -1,10 +1,9 @@
 """LLM-guided circuit rewriting and modification."""
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from skadi.core.circuit_representation import CircuitRepresentation
 from skadi.engine.llm_client import LLMClient
-from skadi.knowledge.augmenter import KnowledgeAugmenter
 
 
 class CircuitRewriter:
@@ -15,7 +14,7 @@ class CircuitRewriter:
     modifications in the transformation history.
 
     Example:
-        >>> rewriter = CircuitRewriter(llm_client, knowledge_augmenter)
+        >>> rewriter = CircuitRewriter(llm_client)
         >>> modified = rewriter.rewrite(
         ...     circuit,
         ...     "Add a rotation before measurement"
@@ -23,25 +22,18 @@ class CircuitRewriter:
         >>> print(modified.code)
     """
 
-    def __init__(
-        self,
-        llm_client: LLMClient,
-        knowledge_augmenter: Optional[KnowledgeAugmenter] = None,
-    ):
+    def __init__(self, llm_client: LLMClient):
         """Initialize the circuit rewriter.
 
         Args:
             llm_client: LLM client for code generation
-            knowledge_augmenter: Knowledge augmenter for context (optional)
         """
         self.llm_client = llm_client
-        self.knowledge_augmenter = knowledge_augmenter
 
     def rewrite(
         self,
         circuit: CircuitRepresentation,
         modification_request: str,
-        use_knowledge: bool = True,
         preserve_structure: bool = True,
     ) -> CircuitRepresentation:
         """Rewrite a circuit based on natural language modification request.
@@ -49,7 +41,6 @@ class CircuitRewriter:
         Args:
             circuit: CircuitRepresentation to modify
             modification_request: Natural language description of changes
-            use_knowledge: Use knowledge augmentation for better results
             preserve_structure: Try to preserve overall circuit structure
 
         Returns:
@@ -77,20 +68,6 @@ class CircuitRewriter:
             circuit, modification_request, visualization, preserve_structure
         )
 
-        # Augment with knowledge if requested
-        if use_knowledge and self.knowledge_augmenter:
-            base_prompt = (
-                "Modify quantum circuit based on user request. "
-                "Ensure the code is valid PennyLane code."
-            )
-            prompt = (
-                self.knowledge_augmenter.augment_prompt(
-                    modification_request, base_prompt
-                )
-                + "\n\n"
-                + prompt
-            )
-
         # Generate modified code
         modified_code = self.llm_client.generate_circuit_code(prompt)
 
@@ -101,7 +78,6 @@ class CircuitRewriter:
         temp_generator = CircuitGenerator(
             api_key=self.llm_client.api_key,
             model=self.llm_client.model_id,
-            use_knowledge=False,  # Don't use knowledge for validation
         )
 
         # Validate the code
@@ -140,7 +116,6 @@ class CircuitRewriter:
             transform_name="rewrite",
             transform_params={
                 "modification_request": modification_request,
-                "use_knowledge": use_knowledge,
                 "preserve_structure": preserve_structure,
             },
             before_specs=before_specs,

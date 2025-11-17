@@ -138,17 +138,17 @@ def display_code(code: str, title: str = "Generated Code") -> None:
 @app.command()
 def main(
     command: str,
-    no_code: bool = typer.Option(False, "--no-code", help="Don't display code output"),
+    with_code: bool = typer.Option(False, "--with-code", help="Display generated code"),
 ) -> None:
     """Process natural language commands to generate or manipulate quantum circuits.
 
     Args:
         command: Natural language description of desired circuit or operation
-        no_code: If True, suppress code display
+        with_code: If True, display the generated code
 
     Examples:
         skadi "Create a Bell state circuit"
-        skadi "Modify the circuit to add a phase gate" --no-code
+        skadi "Modify the circuit to add a phase gate" --with-code
         skadi "Optimize the current circuit"
         skadi "Show the current circuit"
         skadi clear  (to remove circuit.py)
@@ -180,7 +180,7 @@ def main(
             raise typer.Exit(1)
 
         visualize_circuit(circuit, "Current Circuit")
-        if not no_code:
+        if with_code:
             display_code(circuit.code)
         raise typer.Exit(0)
 
@@ -191,9 +191,9 @@ def main(
         generator = CircuitGenerator()
         circuit = generator.generate_circuit(command)
 
-        if not no_code:
-            display_code(circuit.code, "Generated Code")
         visualize_circuit(circuit, "Generated Circuit")
+        if with_code:
+            display_code(circuit.code, "Generated Code")
 
         save_circuit(circuit)
         raise typer.Exit(0)
@@ -208,7 +208,7 @@ def main(
         generator = CircuitGenerator()
         circuit = generator.generate_circuit(command)
 
-        if not no_code:
+        if with_code:
             display_code(circuit.code, "Generated Code")
         visualize_circuit(circuit, "Generated Circuit")
 
@@ -230,7 +230,7 @@ def main(
 
         # Show optimized
         visualize_circuit(optimized, "Optimized Circuit")
-        if not no_code:
+        if with_code:
             display_code(optimized.code, "Optimized Code")
 
         # Show improvement
@@ -260,7 +260,7 @@ def main(
 
         # Show modified
         visualize_circuit(modified, "Modified Circuit")
-        if not no_code:
+        if with_code:
             display_code(modified.code, "Modified Code")
 
         save_circuit(modified)

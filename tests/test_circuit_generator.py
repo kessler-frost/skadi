@@ -34,20 +34,20 @@ class TestCircuitGenerator:
 
     def test_init(self):
         """Test circuit generator initialization."""
-        generator = CircuitGenerator(api_key="test_key", use_knowledge=False)
+        generator = CircuitGenerator(api_key="test_key")
         assert generator.llm_client is not None
         assert isinstance(generator.llm_client, LLMClient)
 
     def test_validate_code_empty(self):
         """Test validation fails for empty code."""
-        generator = CircuitGenerator(api_key="test_key", use_knowledge=False)
+        generator = CircuitGenerator(api_key="test_key")
 
         with pytest.raises(ValueError, match="Generated code is empty"):
             generator._validate_code("")
 
     def test_validate_code_missing_import(self):
         """Test validation fails when pennylane import is missing."""
-        generator = CircuitGenerator(api_key="test_key", use_knowledge=False)
+        generator = CircuitGenerator(api_key="test_key")
 
         code = """
 def circuit():
@@ -59,7 +59,7 @@ def circuit():
 
     def test_validate_code_missing_device(self):
         """Test validation fails when device creation is missing."""
-        generator = CircuitGenerator(api_key="test_key", use_knowledge=False)
+        generator = CircuitGenerator(api_key="test_key")
 
         code = """
 import pennylane as qml
@@ -73,7 +73,7 @@ def circuit():
 
     def test_validate_code_missing_qnode(self):
         """Test validation fails when QNode decorator is missing."""
-        generator = CircuitGenerator(api_key="test_key", use_knowledge=False)
+        generator = CircuitGenerator(api_key="test_key")
 
         code = """
 import pennylane as qml
@@ -89,7 +89,7 @@ def circuit():
 
     def test_validate_code_valid(self):
         """Test validation passes for valid code."""
-        generator = CircuitGenerator(api_key="test_key", use_knowledge=False)
+        generator = CircuitGenerator(api_key="test_key")
 
         code = """
 import pennylane as qml
@@ -108,7 +108,7 @@ def circuit():
 
     def test_execute_code_valid(self):
         """Test executing valid circuit code."""
-        generator = CircuitGenerator(api_key="test_key", use_knowledge=False)
+        generator = CircuitGenerator(api_key="test_key")
 
         code = """
 import pennylane as qml
@@ -130,7 +130,7 @@ def circuit():
 
     def test_execute_code_invalid_syntax(self):
         """Test executing code with syntax error."""
-        generator = CircuitGenerator(api_key="test_key", use_knowledge=False)
+        generator = CircuitGenerator(api_key="test_key")
 
         code = """
 import pennylane as qml
