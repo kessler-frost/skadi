@@ -105,10 +105,19 @@ class CircuitRewriter:
         )
 
         # Validate the code
-        temp_generator._validate_code(modified_code)
+        validation_error = temp_generator._try_validate_code(modified_code)
+        if validation_error:
+            raise ValueError(f"Code validation failed: {validation_error}")
 
         # Execute to get the qnode
-        modified_qnode = temp_generator._execute_code(modified_code)
+        modified_qnode, execution_error = temp_generator._try_execute_code(modified_code)
+        if execution_error:
+            raise ValueError(f"Code execution failed: {execution_error}")
+
+        # Try to compile the circuit
+        compilation_error = temp_generator._try_compile_circuit(modified_qnode)
+        if compilation_error:
+            raise ValueError(f"Circuit compilation failed: {compilation_error}")
 
         # Create new circuit representation
         new_circuit = CircuitRepresentation(

@@ -27,6 +27,7 @@ class CircuitGenerator:
         use_knowledge: Optional[bool] = None,
         use_pennylane_kb: Optional[bool] = None,
         use_context7: Optional[bool] = None,
+        max_retries: int = 3,
     ):
         """
         Initialize the circuit generator.
@@ -37,6 +38,7 @@ class CircuitGenerator:
             use_knowledge: Whether to use knowledge augmentation. If None, uses settings.use_knowledge.
             use_pennylane_kb: Whether to use PennyLane knowledge base. If None, uses settings.use_pennylane_kb.
             use_context7: Whether to use Context7 API docs. If None, uses settings.use_context7.
+            max_retries: Maximum number of retries on syntax/compilation errors (default: 3).
         """
         # Use settings as defaults, allow constructor overrides
         self.llm_client = LLMClient(
@@ -46,6 +48,7 @@ class CircuitGenerator:
         self.use_knowledge = (
             use_knowledge if use_knowledge is not None else settings.use_knowledge
         )
+        self.max_retries = max_retries
 
         # Initialize knowledge augmenter if enabled
         if self.use_knowledge:
@@ -71,6 +74,9 @@ class CircuitGenerator:
 
         Returns:
             Tuple of (circuit_function, generated_code).
+
+        Raises:
+            ValueError: If code generation fails after all retries.
         """
         should_use_knowledge = (
             use_knowledge if use_knowledge is not None else self.use_knowledge
@@ -80,11 +86,41 @@ class CircuitGenerator:
         if should_use_knowledge and self.knowledge_augmenter:
             knowledge_context = self._retrieve_knowledge(description)
 
-        code = self.llm_client.generate_circuit_code(description, knowledge_context)
-        self._validate_code(code)
-        circuit = self._execute_code(code)
+        error_feedback = ""
+        last_error = None
 
-        return circuit, code
+        for attempt in range(self.max_retries):
+            code = self.llm_client.generate_circuit_code(
+                description, knowledge_context, error_feedback
+            )
+
+            # Try to validate and execute the code
+            validation_error = self._try_validate_code(code)
+            if validation_error:
+                error_feedback = f"Validation error: {validation_error}"
+                last_error = ValueError(error_feedback)
+                continue
+
+            circuit, execution_error = self._try_execute_code(code)
+            if execution_error:
+                error_feedback = f"Execution error: {execution_error}"
+                last_error = ValueError(error_feedback)
+                continue
+
+            # Try to compile/draw the circuit to catch compilation errors
+            compilation_error = self._try_compile_circuit(circuit)
+            if compilation_error:
+                error_feedback = f"Compilation error: {compilation_error}"
+                last_error = ValueError(error_feedback)
+                continue
+
+            # Success - all checks passed
+            return circuit, code
+
+        # All retries exhausted
+        raise last_error or ValueError(
+            f"Failed to generate valid circuit after {self.max_retries} attempts"
+        )
 
     def generate(
         self, description: str, use_knowledge: Optional[bool] = None
@@ -145,15 +181,15 @@ Generate valid PennyLane circuit code from this description: {description}"""
 
         return ""
 
-    def _validate_code(self, code: str) -> None:
+    def _try_validate_code(self, code: str) -> Optional[str]:
         """
         Validate that the generated code contains required PennyLane components.
 
         Args:
             code: The generated Python code string.
 
-        Raises:
-            ValueError: If the code is invalid or missing required components.
+        Returns:
+            Error message if validation fails, None if validation passes.
         """
         validations = {
             r"\S": "Generated code is empty",
@@ -166,9 +202,11 @@ Generate valid PennyLane circuit code from this description: {description}"""
 
         for pattern, error_msg in validations.items():
             if not re.search(pattern, code):
-                raise ValueError(error_msg)
+                return error_msg
 
-    def _execute_code(self, code: str) -> Callable:
+        return None
+
+    def _try_execute_code(self, code: str) -> tuple[Optional[Callable], Optional[str]]:
         """
         Execute the generated code and extract the circuit function.
 
@@ -176,12 +214,9 @@ Generate valid PennyLane circuit code from this description: {description}"""
             code: The generated Python code string.
 
         Returns:
-            The circuit function from the executed code.
-
-        Raises:
-            ValueError: If the code cannot be executed or circuit function not found.
+            Tuple of (circuit_function, error_message).
+            Returns (circuit, None) on success, (None, error_msg) on failure.
         """
-        # Create a namespace for execution
         namespace: Dict[str, Any] = {
             "qml": qml,
             "pennylane": qml,
@@ -190,25 +225,40 @@ Generate valid PennyLane circuit code from this description: {description}"""
         try:
             # Execute the generated code
             exec(code, namespace)
-
-            # Extract the circuit function
-            if "circuit" not in namespace:
-                raise ValueError(
-                    "Circuit function 'circuit' not found in generated code"
-                )
-
-            circuit = namespace["circuit"]
-
-            # Verify it's callable
-            if not callable(circuit):
-                raise ValueError("'circuit' is not a callable function")
-
-            return circuit
-
         except SyntaxError as e:
-            raise ValueError(f"Syntax error in generated code: {str(e)}")
+            return None, f"Syntax error: {e.msg} at line {e.lineno}"
         except Exception as e:
-            raise ValueError(f"Error executing generated code: {str(e)}")
+            return None, f"Execution error: {type(e).__name__}: {str(e)}"
+
+        # Extract the circuit function
+        if "circuit" not in namespace:
+            return None, "Circuit function 'circuit' not found in generated code"
+
+        circuit = namespace["circuit"]
+
+        # Verify it's callable
+        if not callable(circuit):
+            return None, "'circuit' is not a callable function"
+
+        return circuit, None
+
+    def _try_compile_circuit(self, circuit: Callable) -> Optional[str]:
+        """
+        Try to compile the circuit to catch compilation errors without execution.
+
+        Args:
+            circuit: The circuit function to test.
+
+        Returns:
+            Error message if compilation fails, None if successful.
+        """
+        try:
+            # Use qml.specs to compile/analyze the circuit without executing it
+            # This will construct the quantum tape and validate the circuit structure
+            qml.specs(circuit)()
+            return None
+        except Exception as e:
+            return f"Compilation error: {type(e).__name__}: {str(e)}"
 
     def generate_with_code(
         self, description: str, use_knowledge: Optional[bool] = None
