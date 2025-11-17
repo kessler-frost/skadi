@@ -47,8 +47,7 @@ skadi/
 │   ├── engine/        # LLM client
 │   └── manipulation/  # Circuit transformations, optimization, and analysis
 ├── tests/             # Test suite
-├── examples/          # Example scripts
-└── data/              # User data directory
+└── examples/          # Example scripts
 ```
 
 ### Technologies
