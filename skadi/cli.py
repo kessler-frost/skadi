@@ -147,7 +147,18 @@ def main(command: str) -> None:
         skadi "Modify the circuit to add a phase gate"
         skadi "Optimize the current circuit"
         skadi "Show the current circuit"
+        skadi clear  (to remove circuit.py)
     """
+    # Handle "clear" as a special command
+    if command.lower().strip() == "clear":
+        if not CIRCUIT_FILE.exists():
+            console.print("[yellow]No circuit file found.[/yellow]")
+            raise typer.Exit(0)
+
+        CIRCUIT_FILE.unlink()
+        console.print(f"[green]✓[/green] Removed {CIRCUIT_FILE}")
+        raise typer.Exit(0)
+
     # Check API key
     if not settings.openrouter_api_key:
         console.print("[red]Error:[/red] OPENROUTER_API_KEY not set")
