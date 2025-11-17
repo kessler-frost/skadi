@@ -8,14 +8,14 @@ Generate and manipulate PennyLane quantum circuits using natural language.
 # Run directly with uvx (no installation needed)
 uvx --from git+https://github.com/kessler-frost/skadi skadi "create a bell state"
 
-# Or install as a tool
-uv tool install git+https://github.com/kessler-frost/skadi
+# Or install/upgrade as a tool (always gets latest version)
+uv tool install --reinstall git+https://github.com/kessler-frost/skadi
 
 # Set your API key
 export OPENROUTER_API_KEY="your-key-here"
 ```
 
-Get an API key from https://openrouter.ai/
+Get an API key from <https://openrouter.ai/>
 
 ## Quick Start
 
@@ -38,12 +38,14 @@ All circuits are saved to `circuit.py` and visualized as ASCII art in your termi
 ## More Examples
 
 **Generate circuits:**
+
 ```bash
 skadi "create a 3-qubit GHZ state"
 skadi "create a quantum fourier transform for 4 qubits"
 ```
 
 **Modify and optimize:**
+
 ```bash
 skadi "add a rotation gate before the CNOT"
 skadi "optimize the circuit aggressively"
