@@ -1,10 +1,10 @@
 """Demonstration of circuit manipulation features.
 
 This script shows how to use Skadi's circuit manipulation capabilities:
-- Transform: Apply PennyLane transforms
 - Optimize: Reduce gate count and depth
 - Understand: Analyze and explain circuits
 - Rewrite: Modify circuits with natural language
+- Compare: Compare two circuit versions
 
 Usage:
     uv run python examples/circuit_manipulation_demo.py
@@ -20,210 +20,133 @@ def print_section(title: str):
     print("=" * 80 + "\n")
 
 
-def demo_transform():
-    """Demonstrate circuit transformation."""
-    print_section("DEMO 1: Circuit Transformation")
+def print_header():
+    """Print demo header."""
+    print("╔" + "=" * 78 + "╗")
+    print("║" + "CIRCUIT MANIPULATION DEMO".center(78) + "║")
+    print("║" + "Optimize • Understand • Rewrite • Compare".center(78) + "║")
+    print("╚" + "=" * 78 + "╝")
+
+
+def demo_optimization():
+    """Demonstrate circuit optimization."""
+    print_section("DEMO 1: Circuit Optimization")
 
     # Generate a circuit
     generator = CircuitGenerator()
-    circuit = generator.generate_circuit("Create a Bell state with extra inverse gates")
+    circuit = generator.generate_circuit(
+        "Create a 3-qubit GHZ state with some extra rotations"
+    )
 
     print("Original Circuit:")
     print(circuit.get_visualization())
     print(f"\nOriginal Stats: {circuit.get_resource_summary()}")
 
-    # Apply transformations
+    # Apply optimization
     manipulator = CircuitManipulator()
 
-    print("\n--- Applying cancel_inverses transform ---")
-    transformed = manipulator.transform(circuit, "cancel_inverses")
-    print(transformed.get_visualization())
-    print(f"Transformed Stats: {transformed.get_resource_summary()}")
-
-    print("\n--- Applying merge_rotations transform ---")
-    transformed2 = manipulator.transform(transformed, "merge_rotations")
-    print(f"After merge_rotations: {transformed2.get_resource_summary()}")
-
-    print(
-        f"\nTransform History: {len(transformed2.transform_history)} transforms applied"
-    )
-
-
-def demo_optimize():
-    """Demonstrate circuit optimization."""
-    print_section("DEMO 2: Circuit Optimization")
-
-    # Generate a circuit
-    generator = CircuitGenerator()
-    circuit = generator.generate_circuit(
-        "Create a 3-qubit circuit with Hadamards and CNOTs"
-    )
-
-    print("Original Circuit:")
-    print(circuit.get_visualization())
-    before_stats = circuit.get_resource_summary()
-    print("\nBefore Optimization:")
-    print(f"  Operations: {before_stats['num_operations']}")
-    print(f"  Depth: {before_stats['depth']}")
-
-    # Optimize with different levels
-    manipulator = CircuitManipulator()
-
-    for level in ["basic", "default", "aggressive"]:
-        print(f"\n--- Optimization Level: {level} ---")
-        optimized = manipulator.optimize(circuit, level=level, num_passes=2)
-        after_stats = optimized.get_resource_summary()
-
-        improvement = optimized.transform_history[-1].get("improvement", {})
-
-        print("After Optimization:")
-        print(
-            f"  Operations: {after_stats['num_operations']} "
-            f"(reduced by {improvement.get('operations_reduced', 0)})"
-        )
-        print(
-            f"  Depth: {after_stats['depth']} "
-            f"(reduced by {improvement.get('depth_reduced', 0)})"
-        )
+    print("\n--- Applying aggressive optimization ---")
+    optimized = manipulator.optimize(circuit, level="aggressive", num_passes=2)
+    print(optimized.get_visualization())
+    print(f"Optimized Stats: {optimized.get_resource_summary()}")
 
     # Get optimization report
-    optimized = manipulator.optimize(circuit, level="aggressive")
     report = manipulator.get_optimization_report(optimized)
-    print("\n--- Optimization Report ---")
-    print(report["summary"])
+    print(f"\nOptimization Report:")
+    print(f"  Optimizations applied: {report['optimizations_applied']}")
+    if report.get("total_improvement"):
+        print(f"  Total operations reduced: {report['total_improvement'].get('total_operations_reduced', 0)}")
+        print(f"  Total depth reduced: {report['total_improvement'].get('total_depth_reduced', 0)}")
+    if report.get("summary"):
+        print(f"\nSummary: {report['summary']}")
 
 
-def demo_understand():
+def demo_understanding():
     """Demonstrate circuit analysis."""
-    print_section("DEMO 3: Circuit Understanding")
+    print_section("DEMO 2: Circuit Understanding")
 
-    # Generate a circuit
     generator = CircuitGenerator()
-    circuit = generator.generate_circuit("Create a GHZ state for 3 qubits")
+    circuit = generator.generate_circuit("Create a Bell state")
 
-    print("Circuit to Analyze:")
-    print(circuit.get_visualization())
-
-    # Analyze the circuit
     manipulator = CircuitManipulator()
+
+    print("Analyzing circuit...")
     analysis = manipulator.understand(circuit, include_explanation=True, verbose=True)
 
-    print("\n--- Circuit Analysis ---")
-    print(f"Description: {analysis['description']}")
-    print(f"\nComplexity Level: {analysis['complexity']['level']}")
-    print(f"Total Operations: {analysis['specs']['num_operations']}")
-    print(f"Circuit Depth: {analysis['specs']['depth']}")
+    print(f"\nComplexity: {analysis['complexity']['level']}")
+    print(f"Operations: {analysis['specs']['num_operations']}")
+    print(f"Depth: {analysis['specs']['depth']}")
     print(f"Qubits: {analysis['specs']['num_wires']}")
-    print(f"Entangling Gates: {analysis['complexity']['entangling_gates']}")
-
-    print("\n--- Gate Analysis ---")
-    gate_analysis = analysis["gate_analysis"]
-    print(f"Single-qubit gates: {gate_analysis['single_qubit_count']}")
-    print(f"Multi-qubit gates: {gate_analysis['multi_qubit_count']}")
-    print(f"Gate types: {gate_analysis['gate_types']}")
 
     if analysis.get("explanation"):
-        print("\n--- LLM-Generated Explanation ---")
-        print(
-            analysis["explanation"][:500] + "..."
-            if len(analysis["explanation"]) > 500
-            else analysis["explanation"]
-        )
+        print(f"\nExplanation:")
+        print(analysis["explanation"])
 
 
 def demo_rewrite():
     """Demonstrate circuit rewriting."""
-    print_section("DEMO 4: Circuit Rewriting")
+    print_section("DEMO 3: Circuit Rewriting")
 
-    # Generate a circuit
     generator = CircuitGenerator()
-    circuit = generator.generate_circuit("Create a simple Bell state")
+    circuit = generator.generate_circuit("Create a simple superposition circuit")
 
     print("Original Circuit:")
     print(circuit.get_visualization())
-    print(f"\nOriginal Code:\n{circuit.code}")
 
-    # Rewrite the circuit
     manipulator = CircuitManipulator()
 
-    modification = "Add a phase gate before the CNOT"
-    print("\n--- Rewriting Circuit ---")
-    print(f"Modification Request: {modification}")
+    print("\n--- Rewriting with natural language ---")
+    modified = manipulator.rewrite(circuit, "Add a phase gate after the Hadamard")
 
-    rewritten = manipulator.rewrite(circuit, modification)
+    print("\nModified Circuit:")
+    print(modified.get_visualization())
 
-    print("\nRewritten Circuit:")
-    print(rewritten.get_visualization())
-    print(f"\nRewritten Code:\n{rewritten.code}")
-
-    print(f"\nTransform History: {len(rewritten.transform_history)} modifications")
+    print(f"\nOriginal operations: {circuit.get_resource_summary()['num_operations']}")
+    print(f"Modified operations: {modified.get_resource_summary()['num_operations']}")
 
 
-def demo_workflow():
-    """Demonstrate complete manipulation workflow."""
-    print_section("DEMO 5: Complete Workflow")
+def demo_comparison():
+    """Demonstrate circuit comparison."""
+    print_section("DEMO 4: Circuit Comparison")
 
-    # Generate → Analyze → Optimize → Compare
     generator = CircuitGenerator()
     manipulator = CircuitManipulator()
 
-    print("Step 1: Generate Circuit")
-    circuit = generator.generate_circuit(
-        "Create a quantum Fourier transform circuit for 2 qubits"
-    )
-    print(circuit.get_visualization())
+    # Create original circuit
+    original = generator.generate_circuit("Create a 2-qubit Bell state")
 
-    print("\nStep 2: Analyze Original")
-    analysis1 = manipulator.understand(circuit, include_explanation=False)
-    print(f"  Operations: {analysis1['specs']['num_operations']}")
-    print(f"  Depth: {analysis1['specs']['depth']}")
+    # Optimize it
+    optimized = manipulator.optimize(original, level="aggressive")
 
-    print("\nStep 3: Optimize")
-    optimized = manipulator.optimize(circuit, level="aggressive", num_passes=3)
-    print(
-        f"  Operations after optimization: {optimized.get_resource_summary()['num_operations']}"
-    )
-    print(f"  Depth after optimization: {optimized.get_resource_summary()['depth']}")
-
-    print("\nStep 4: Compare Original vs Optimized")
+    print("Comparing circuits...")
     comparison = manipulator.compare_circuits(
-        circuit, optimized, names=("Original", "Optimized")
+        original, optimized, names=("Original", "Optimized")
     )
-    print(f"  Difference in operations: {comparison['differences']['operations']}")
-    print(f"  Difference in depth: {comparison['differences']['depth']}")
 
-    print("\nStep 5: Get Optimization Report")
-    report = manipulator.get_optimization_report(optimized)
-    print(f"  {report['summary']}")
+    print(f"\nOriginal Circuit:")
+    print(f"  Operations: {comparison['circuit1']['operations']}")
+    print(f"  Depth: {comparison['circuit1']['depth']}")
+
+    print(f"\nOptimized Circuit:")
+    print(f"  Operations: {comparison['circuit2']['operations']}")
+    print(f"  Depth: {comparison['circuit2']['depth']}")
+
+    print(f"\nDifferences:")
+    print(f"  Operations: {comparison['differences']['operations']}")
+    print(f"  Depth: {comparison['differences']['depth']}")
 
 
 def main():
-    """Run all manipulation demos."""
-    print("\n")
-    print("╔" + "=" * 78 + "╗")
-    print("║" + " " * 20 + "CIRCUIT MANIPULATION DEMO" + " " * 33 + "║")
-    print(
-        "║" + " " * 15 + "Transform • Optimize • Understand • Rewrite" + " " * 20 + "║"
-    )
-    print("╚" + "=" * 78 + "╝")
-
+    """Run all demos."""
     try:
-        # Run all demos
-        demo_transform()
-        demo_optimize()
-        demo_understand()
+        print_header()
+        demo_optimization()
+        demo_understanding()
         demo_rewrite()
-        demo_workflow()
+        demo_comparison()
 
         print("\n" + "=" * 80)
-        print("  ALL DEMOS COMPLETE")
-        print("=" * 80)
-        print("\nKey Takeaways:")
-        print("1. Transform: Apply PennyLane's built-in transforms to circuits")
-        print("2. Optimize: Reduce gate count and depth with optimization pipelines")
-        print("3. Understand: Analyze circuit structure and generate explanations")
-        print("4. Rewrite: Modify circuits using natural language requests")
-        print("5. Complete workflows: Chain operations for complex manipulations")
+        print("DEMO COMPLETE".center(80))
         print("=" * 80)
 
     except Exception as e:
