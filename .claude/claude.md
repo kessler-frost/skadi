@@ -137,21 +137,10 @@ manipulator = CircuitManipulator()
 # Generate circuit with metadata
 circuit = generator.generate_circuit("Create a quantum Fourier transform for 3 qubits")
 
-# Apply transforms
-transformed = manipulator.transform(circuit, "cancel_inverses")
-sequence_result = manipulator.transform_sequence(circuit, [
-    ("cancel_inverses", None),
-    ("merge_rotations", None),
-    ("commute_controlled", None),
-])
-
-# Optimization levels
+# Optimization with different levels
 basic = manipulator.optimize(circuit, level="basic", num_passes=1)
 default = manipulator.optimize(circuit, level="default", num_passes=2)
 aggressive = manipulator.optimize(circuit, level="aggressive", num_passes=3)
-
-# Compare optimization levels
-results = manipulator.compare_levels(circuit)
 
 # Analysis and explanation
 analysis = manipulator.understand(circuit, include_explanation=True, verbose=True)
@@ -159,11 +148,13 @@ print(f"Complexity: {analysis['complexity']['level']}")
 print(f"Explanation: {analysis['explanation']}")
 
 # Circuit comparison
-comparison = manipulator.compare_circuits(original, optimized, names=("Original", "Optimized"))
+comparison = manipulator.compare_circuits(circuit, optimized, names=("Original", "Optimized"))
 
 # Natural language rewriting
-modified = manipulator.rewrite(circuit, "Add a rotation before the CNOT gate")
-simplified = manipulator.simplify(circuit)
+modified = manipulator.rewrite(circuit, "Add a rotation gate before the CNOT")
+
+# Get optimization report
+report = manipulator.get_optimization_report(circuit)
 ```
 
 ### CircuitRepresentation Usage
