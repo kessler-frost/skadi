@@ -22,9 +22,6 @@ class Settings(BaseSettings):
         None  # If None, uses OpenRouter; otherwise uses custom provider
     )
 
-    # OpenAI Configuration (for embeddings)
-    openai_api_key: Optional[str] = None
-
     # Knowledge Base Configuration
     use_knowledge: bool = True
     use_pennylane_kb: bool = True
@@ -35,8 +32,8 @@ class Settings(BaseSettings):
     lancedb_uri: str = "data/lancedb"
     lancedb_table: str = "pennylane_knowledge"
 
-    # Embedding Configuration
-    embedding_model: str = "text-embedding-3-small"
+    # Embedding Configuration (FastEmbed - runs locally, no API key needed)
+    embedding_model: str = "BAAI/bge-small-en-v1.5"  # 384 dims, ~69 MB
     chunk_size: int = 1000
     chunk_overlap: int = 200
 

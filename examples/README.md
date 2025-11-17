@@ -9,14 +9,13 @@ This directory contains example scripts demonstrating various features of Skadi.
    uv sync
    ```
 
-2. Set up your API keys:
+2. Set up your API key:
    ```bash
    cp ../.env.example ../.env
-   # Edit .env and add your API keys
+   # Edit .env and add your API key
    ```
 
-   - `OPENROUTER_API_KEY` - Required for circuit generation (get from [OpenRouter](https://openrouter.ai/))
-   - `OPENAI_API_KEY` - Required for knowledge base features (get from [OpenAI](https://platform.openai.com/))
+   - `SKADI_API_KEY` - Required for circuit generation (get from [OpenRouter](https://openrouter.ai/))
 
 ## Examples Overview
 
@@ -35,7 +34,7 @@ uv run python examples/generate_circuit.py
 - Generate Bell state and superposition circuits
 - View generated code and circuit output
 
-**Requirements:** `OPENROUTER_API_KEY`
+**Requirements:** `SKADI_API_KEY`
 
 #### `circuit_manipulation_demo.py` ✅
 
@@ -52,11 +51,11 @@ uv run python examples/circuit_manipulation_demo.py
 - Rewrite: Modify circuits with natural language
 - Complete workflows: Chain operations for complex manipulations
 
-**Requirements:** `OPENROUTER_API_KEY`
+**Requirements:** `SKADI_API_KEY`
 
 ### Knowledge System
 
-#### `use_knowledge_base.py` ⚠️ (Optional - Advanced Setup)
+#### `use_knowledge_base.py` ✅
 
 Shows how to use the PennyLane knowledge base for RAG.
 
@@ -70,10 +69,7 @@ uv run python examples/use_knowledge_base.py
 - Search for information
 - Integrate with Agno agents
 
-**Requirements:**
-- `OPENAI_API_KEY` (for embeddings)
-- **Note:** This is optional - Skadi works great with Context7 alone!
-- **Future:** We plan to switch to open-source embedding solutions
+**Requirements:** None (uses FastEmbed for local embeddings, ~69 MB download on first use)
 
 #### `enhanced_generation_demo.py` ✅
 
@@ -88,7 +84,7 @@ uv run python examples/enhanced_generation_demo.py
 - Knowledge-augmented circuit generation
 - Comparison with/without knowledge
 
-**Requirements:** `OPENROUTER_API_KEY`
+**Requirements:** `SKADI_API_KEY`
 
 ### Documentation Tools
 
@@ -149,10 +145,10 @@ PYTHONPATH=. uv run python examples/context7_live_mcp_example.py
 
 | Example | Purpose | Requirements | Status |
 |---------|---------|--------------|--------|
-| `generate_circuit.py` | Basic circuit generation | OPENROUTER_API_KEY | ✅ |
-| `circuit_manipulation_demo.py` | Circuit manipulation features | OPENROUTER_API_KEY | ✅ |
-| `use_knowledge_base.py` | Knowledge base demo | OPENAI_API_KEY | ⚠️ Optional |
-| `enhanced_generation_demo.py` | Dual knowledge system | OPENROUTER_API_KEY | ✅ |
+| `generate_circuit.py` | Basic circuit generation | SKADI_API_KEY | ✅ |
+| `circuit_manipulation_demo.py` | Circuit manipulation features | SKADI_API_KEY | ✅ |
+| `use_knowledge_base.py` | Knowledge base demo | None | ✅ |
+| `enhanced_generation_demo.py` | Dual knowledge system | SKADI_API_KEY | ✅ |
 | `scrape_docs.py` | Documentation scraping | playwright install | ⚠️ Optional |
 | `context7_mcp_demo.py` | Context7 API demo | None | ✅ |
 | `context7_live_mcp_example.py` | Live MCP usage | Claude Code env | ⚠️ Optional |
@@ -177,8 +173,8 @@ PYTHONPATH=. uv run python examples/context7_live_mcp_example.py
 - Use `PYTHONPATH=.` prefix when needed
 
 **Knowledge Base Errors:**
-- `OPENAI_API_KEY` required for embeddings
-- First run initializes the database (may take time)
+- First run downloads embedding model (~69 MB)
+- Embedding model is cached after first download
 
 **Generated Code Issues:**
 - LLM may occasionally generate invalid code

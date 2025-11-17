@@ -4,6 +4,10 @@
 
 Skadi generates PennyLane quantum circuits from natural language using LLM orchestration with dual knowledge sources for enhanced accuracy.
 
+## Core Design Principle
+
+**Simplicity to the user is the highest priority.** All features, architecture decisions, and improvements should prioritize making Skadi as simple and accessible as possible for end users. When in doubt between power-user features and simplicity, choose simplicity.
+
 ## Development Guidelines
 
 ### Package Management
@@ -67,7 +71,7 @@ Dual knowledge sources enhance circuit generation:
 
 1. **Agno Knowledge Base** (dynamic RAG)
    - Vector similarity search over scraped PennyLane docs
-   - LanceDB storage with OpenAI embeddings
+   - LanceDB storage with FastEmbed embeddings (open-source, local, no API key)
    - Hybrid search (vector + keyword)
 
 2. **Context7 Client** (static API docs)
@@ -101,11 +105,11 @@ Skadi uses `pydantic-settings` for configuration. All settings are loaded from e
 
 ### Optional Knowledge Base Settings
 
-- `OPENAI_API_KEY` - OpenAI API key for embeddings (required for knowledge base features)
 - `USE_KNOWLEDGE` - Enable knowledge augmentation (default: `true`)
 - `USE_PENNYLANE_KB` - Enable PennyLane knowledge base (default: `true`)
 - `USE_CONTEXT7` - Enable Context7 integration (default: `true`)
 - `MAX_KNOWLEDGE_TOKENS` - Maximum tokens for knowledge retrieval (default: `2000`)
+- `EMBEDDING_MODEL` - FastEmbed model for local embeddings (default: `BAAI/bge-small-en-v1.5`, ~69 MB, no API key required)
 
 See `.env.example` for all available configuration options with descriptions.
 
@@ -198,7 +202,7 @@ generator = CircuitGenerator(
     use_pennylane_kb=False
 )
 
-# Option 2: Use PennyLane KB (requires OPENAI_API_KEY and scraped docs)
+# Option 2: Use PennyLane KB (requires scraped docs, no API key needed)
 generator = CircuitGenerator(
     use_knowledge=True,
     use_context7=False,

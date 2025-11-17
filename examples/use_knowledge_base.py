@@ -5,13 +5,15 @@ This script shows:
 2. How to add different types of content
 3. How to search for information
 4. How to integrate with Agno agents
+
+NOTE: Uses FastEmbed for local embeddings (no API key required).
+      The embedding model (~69 MB) downloads automatically on first use.
 """
 
 from pathlib import Path
 
 from dotenv import load_dotenv
 
-from skadi.config import settings
 from skadi.engine.knowledge_base import (
     PennyLaneKnowledge,
     get_knowledge_for_agent,
@@ -233,14 +235,11 @@ response = agent.run("What devices does PennyLane support?")
 
 def main():
     """Run all examples."""
-    # Check if API key is set
-    if not settings.openai_api_key:
-        print("Error: OPENAI_API_KEY environment variable not set.")
-        print("Please set it in your .env file or environment.")
-        return
-
     print("PennyLane Knowledge Base Examples")
     print("=" * 50)
+    print("Using FastEmbed for local embeddings (no API key required)")
+    print("Model will be downloaded automatically on first use (~69 MB)")
+    print()
 
     try:
         # Run examples

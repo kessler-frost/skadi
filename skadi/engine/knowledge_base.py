@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional
 
 from agno.knowledge import Knowledge
-from agno.knowledge.embedder.openai import OpenAIEmbedder
+from agno.knowledge.embedder.fastembed import FastEmbedEmbedder
 from agno.vectordb.lancedb import LanceDb, SearchType
 
 from skadi.config import settings
@@ -22,7 +22,7 @@ class PennyLaneKnowledge:
     configured specifically for quantum computing domain knowledge with:
     - Hybrid search (vector + keyword) for technical queries
     - Optimized chunking for code snippets and conceptual explanations
-    - OpenAI embeddings for semantic understanding
+    - FastEmbed for open-source, local embeddings (no API key required)
     - LanceDB for fast vector storage and retrieval
     """
 
@@ -31,7 +31,6 @@ class PennyLaneKnowledge:
         db_uri: Optional[str] = None,
         table_name: Optional[str] = None,
         embedding_model: Optional[str] = None,
-        api_key: Optional[str] = None,
         chunk_size: Optional[int] = None,
         chunk_overlap: Optional[int] = None,
     ):
@@ -40,32 +39,24 @@ class PennyLaneKnowledge:
         Args:
             db_uri: Path to the LanceDB database directory. If None, uses settings.lancedb_uri.
             table_name: Name of the table in LanceDB. If None, uses settings.lancedb_table.
-            embedding_model: OpenAI embedding model ID. If None, uses settings.embedding_model.
-            api_key: OpenAI API key. If None, uses settings.openai_api_key.
+            embedding_model: FastEmbed model ID. If None, uses settings.embedding_model.
+                Recommended models:
+                - "BAAI/bge-small-en-v1.5" (default): 384 dims, ~69 MB, fast
+                - "BAAI/bge-base-en-v1.5": 768 dims, ~215 MB, more accurate
             chunk_size: Size of text chunks for embedding (in characters). If None, uses settings.chunk_size.
             chunk_overlap: Number of overlapping characters between chunks. If None, uses settings.chunk_overlap.
-
-        Raises:
-            ValueError: If API key is not provided and not found in settings.
         """
-        self.api_key = api_key or settings.openai_api_key
-        if not self.api_key:
-            raise ValueError(
-                "OpenAI API key not found. Please set OPENAI_API_KEY environment variable "
-                "or pass api_key to PennyLaneKnowledge constructor."
-            )
-
         self.db_uri = db_uri or settings.lancedb_uri
         self.table_name = table_name or settings.lancedb_table
         self.embedding_model = embedding_model or settings.embedding_model
         self.chunk_size = chunk_size or settings.chunk_size
         self.chunk_overlap = chunk_overlap or settings.chunk_overlap
 
-        # Initialize embedder with API key passed directly
-        self.embedder = OpenAIEmbedder(
+        # Initialize FastEmbed embedder (runs locally, no API key needed)
+        # Automatically downloads the model on first use (~69-215 MB depending on model)
+        self.embedder = FastEmbedEmbedder(
             id=self.embedding_model,
-            dimensions=1536,  # text-embedding-3-small produces 1536-dim vectors
-            api_key=self.api_key,
+            dimensions=384 if "small" in self.embedding_model else 768,
         )
 
         # Initialize LanceDB vector store with hybrid search
@@ -104,7 +95,7 @@ class PennyLaneKnowledge:
         """
         self.knowledge.add_content(
             name=name,
-            content=content,
+            text_content=content,
             metadata=metadata or {},
         )
 
