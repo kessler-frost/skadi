@@ -56,7 +56,7 @@ uv run python examples/circuit_manipulation_demo.py
 
 ### Knowledge System
 
-#### `use_knowledge_base.py` ✅
+#### `use_knowledge_base.py` ⚠️ (Optional - Advanced Setup)
 
 Shows how to use the PennyLane knowledge base for RAG.
 
@@ -70,7 +70,10 @@ uv run python examples/use_knowledge_base.py
 - Search for information
 - Integrate with Agno agents
 
-**Requirements:** `OPENAI_API_KEY`
+**Requirements:**
+- `OPENAI_API_KEY` (for embeddings)
+- **Note:** This is optional - Skadi works great with Context7 alone!
+- **Future:** We plan to switch to open-source embedding solutions
 
 #### `enhanced_generation_demo.py` ✅
 
@@ -89,10 +92,17 @@ uv run python examples/enhanced_generation_demo.py
 
 ### Documentation Tools
 
-#### `scrape_docs.py` ✅
+#### `scrape_docs.py` ⚠️ (Optional - Advanced Setup)
 
 Scrapes PennyLane documentation for the knowledge base.
 
+**Setup Required:**
+```bash
+# Install Playwright browsers
+playwright install
+```
+
+**Run:**
 ```bash
 uv run python examples/scrape_docs.py
 ```
@@ -104,6 +114,8 @@ uv run python examples/scrape_docs.py
 - Display statistics
 
 **Output:** Saves to `data/pennylane_docs/`
+
+**Note:** This is optional - only needed if you want to build the local PennyLane knowledge base
 
 ### Context7 MCP Integration
 
@@ -139,11 +151,11 @@ PYTHONPATH=. uv run python examples/context7_live_mcp_example.py
 |---------|---------|--------------|--------|
 | `generate_circuit.py` | Basic circuit generation | OPENROUTER_API_KEY | ✅ |
 | `circuit_manipulation_demo.py` | Circuit manipulation features | OPENROUTER_API_KEY | ✅ |
-| `use_knowledge_base.py` | Knowledge base demo | OPENAI_API_KEY | ✅ |
+| `use_knowledge_base.py` | Knowledge base demo | OPENAI_API_KEY | ⚠️ Optional |
 | `enhanced_generation_demo.py` | Dual knowledge system | OPENROUTER_API_KEY | ✅ |
-| `scrape_docs.py` | Documentation scraping | None | ✅ |
+| `scrape_docs.py` | Documentation scraping | playwright install | ⚠️ Optional |
 | `context7_mcp_demo.py` | Context7 API demo | None | ✅ |
-| `context7_live_mcp_example.py` | Live MCP usage | Claude Code env | ⚠️  |
+| `context7_live_mcp_example.py` | Live MCP usage | Claude Code env | ⚠️ Optional |
 
 ## Natural Language Prompts to Try
 
