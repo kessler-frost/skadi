@@ -59,15 +59,12 @@ class LLMClient:
             id=self.model_id, api_key=self.api_key, base_url=self.base_url
         )
 
-    def generate_circuit_code(
-        self, description: str, knowledge_context: str = "", error_feedback: str = ""
-    ) -> str:
+    def generate_circuit_code(self, description: str, error_feedback: str = "") -> str:
         """
         Generate PennyLane circuit code from natural language description.
 
         Args:
             description: Natural language description of the quantum circuit.
-            knowledge_context: Optional knowledge context to augment the prompt.
             error_feedback: Optional error message from previous generation attempt.
 
         Returns:
@@ -102,21 +99,8 @@ def circuit():
     qml.CNOT(wires=[0, 1])
     return qml.state()"""
 
-        # Build prompt with optional knowledge context and error feedback
+        # Build prompt with optional error feedback
         prompt_parts = [base_prompt]
-
-        if knowledge_context:
-            prompt_parts.append(
-                f"""
----
-
-**KNOWLEDGE CONTEXT:**
-The following information may help you generate the circuit:
-
-{knowledge_context}
-
----"""
-            )
 
         if error_feedback:
             prompt_parts.append(

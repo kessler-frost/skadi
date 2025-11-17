@@ -5,7 +5,6 @@ from typing import Any, Dict, Optional
 
 from skadi.core.circuit_representation import CircuitRepresentation
 from skadi.engine.llm_client import LLMClient
-from skadi.knowledge.augmenter import KnowledgeAugmenter
 
 
 class CircuitAnalyzer:
@@ -23,7 +22,7 @@ class CircuitAnalyzer:
         - Gate type analysis
 
     Example:
-        >>> analyzer = CircuitAnalyzer(llm_client, knowledge_augmenter)
+        >>> analyzer = CircuitAnalyzer(llm_client)
         >>> analysis = analyzer.analyze(circuit, include_explanation=True)
         >>> print(analysis["explanation"])
     """
@@ -31,16 +30,14 @@ class CircuitAnalyzer:
     def __init__(
         self,
         llm_client: Optional[LLMClient] = None,
-        knowledge_augmenter: Optional[KnowledgeAugmenter] = None,
     ):
         """Initialize the circuit analyzer.
 
         Args:
             llm_client: LLM client for generating explanations (optional)
-            knowledge_augmenter: Knowledge augmenter for context (optional)
+
         """
         self.llm_client = llm_client
-        self.knowledge_augmenter = knowledge_augmenter
 
     def analyze(
         self,
@@ -189,14 +186,6 @@ Please provide:
 4. Any notable characteristics or optimizations
 
 Keep the explanation concise and suitable for someone familiar with quantum computing basics."""
-
-        # Augment with knowledge if available
-        if self.knowledge_augmenter and circuit.description:
-            base_prompt = "Analyze quantum circuit and explain its behavior."
-            augmented_prompt = self.knowledge_augmenter.augment_prompt(
-                circuit.description, base_prompt
-            )
-            prompt = f"{augmented_prompt}\n\n{prompt}"
 
         # Generate explanation
         explanation = self.llm_client.generate_circuit_code(prompt)

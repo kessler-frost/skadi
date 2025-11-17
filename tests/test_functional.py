@@ -16,8 +16,8 @@ load_dotenv(env_file)
 
 
 @pytest.mark.skipif(
-    not settings.openrouter_api_key,
-    reason="OPENROUTER_API_KEY not set - skipping functional tests",
+    not settings.skadi_api_key,
+    reason="SKADI_API_KEY not set - skipping functional tests",
 )
 class TestCircuitGenerationFunctional:
     """End-to-end functional tests for circuit generation."""
