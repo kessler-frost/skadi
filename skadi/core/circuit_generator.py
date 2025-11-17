@@ -1,5 +1,6 @@
 """Main circuit generator that converts natural language to PennyLane circuits."""
 
+import re
 from typing import Any, Callable, Dict, Optional
 
 import pennylane as qml
@@ -59,6 +60,32 @@ class CircuitGenerator:
         else:
             self.knowledge_augmenter = None
 
+    def _generate_internal(
+        self, description: str, use_knowledge: Optional[bool] = None
+    ) -> tuple[Callable, str]:
+        """Internal method that all generation methods call.
+
+        Args:
+            description: Natural language description of the quantum circuit.
+            use_knowledge: Override to enable/disable knowledge augmentation.
+
+        Returns:
+            Tuple of (circuit_function, generated_code).
+        """
+        should_use_knowledge = (
+            use_knowledge if use_knowledge is not None else self.use_knowledge
+        )
+
+        knowledge_context = ""
+        if should_use_knowledge and self.knowledge_augmenter:
+            knowledge_context = self._retrieve_knowledge(description)
+
+        code = self.llm_client.generate_circuit_code(description, knowledge_context)
+        self._validate_code(code)
+        circuit = self._execute_code(code)
+
+        return circuit, code
+
     def generate(
         self, description: str, use_knowledge: Optional[bool] = None
     ) -> Callable:
@@ -81,25 +108,7 @@ class CircuitGenerator:
             ValueError: If the generated code is invalid or cannot be executed.
             Exception: If circuit generation fails.
         """
-        # Determine whether to use knowledge augmentation
-        should_use_knowledge = (
-            use_knowledge if use_knowledge is not None else self.use_knowledge
-        )
-
-        # Get knowledge context if enabled
-        knowledge_context = ""
-        if should_use_knowledge and self.knowledge_augmenter:
-            knowledge_context = self._retrieve_knowledge(description)
-
-        # Generate the circuit code using LLM with knowledge context
-        code = self.llm_client.generate_circuit_code(description, knowledge_context)
-
-        # Validate the generated code
-        self._validate_code(code)
-
-        # Execute the code to create the circuit function
-        circuit = self._execute_code(code)
-
+        circuit, _ = self._generate_internal(description, use_knowledge)
         return circuit
 
     def _retrieve_knowledge(self, description: str) -> str:
@@ -146,28 +155,18 @@ Generate valid PennyLane circuit code from this description: {description}"""
         Raises:
             ValueError: If the code is invalid or missing required components.
         """
-        if not code or len(code.strip()) == 0:
-            raise ValueError("Generated code is empty")
+        validations = {
+            r"\S": "Generated code is empty",
+            r"(?:import|from)\s+pennylane": "Generated code must import pennylane",
+            r"qml\.device": "Generated code must create a quantum device",
+            r"def\s+circuit": "Generated code must define a 'circuit' function",
+            r"@qml\.qnode": "Generated code must use @qml.qnode decorator",
+            r"\breturn\b": "Circuit function must have a return statement",
+        }
 
-        # Check for required imports
-        if "import pennylane" not in code and "from pennylane" not in code:
-            raise ValueError("Generated code must import pennylane")
-
-        # Check for device creation
-        if "qml.device" not in code:
-            raise ValueError("Generated code must create a quantum device")
-
-        # Check for circuit function definition
-        if "def circuit" not in code:
-            raise ValueError("Generated code must define a 'circuit' function")
-
-        # Check for QNode decorator
-        if "@qml.qnode" not in code:
-            raise ValueError("Generated code must use @qml.qnode decorator")
-
-        # Check for return statement
-        if "return" not in code:
-            raise ValueError("Circuit function must have a return statement")
+        for pattern, error_msg in validations.items():
+            if not re.search(pattern, code):
+                raise ValueError(error_msg)
 
     def _execute_code(self, code: str) -> Callable:
         """
@@ -229,21 +228,7 @@ Generate valid PennyLane circuit code from this description: {description}"""
             ValueError: If the generated code is invalid or cannot be executed.
             Exception: If circuit generation fails.
         """
-        # Determine whether to use knowledge augmentation
-        should_use_knowledge = (
-            use_knowledge if use_knowledge is not None else self.use_knowledge
-        )
-
-        # Get knowledge context if enabled
-        knowledge_context = ""
-        if should_use_knowledge and self.knowledge_augmenter:
-            knowledge_context = self._retrieve_knowledge(description)
-
-        # Generate code with knowledge context
-        code = self.llm_client.generate_circuit_code(description, knowledge_context)
-        self._validate_code(code)
-        circuit = self._execute_code(code)
-        return circuit, code
+        return self._generate_internal(description, use_knowledge)
 
     def get_knowledge_stats(self, query: str) -> Dict[str, Any]:
         """
@@ -291,23 +276,12 @@ Generate valid PennyLane circuit code from this description: {description}"""
             >>> print(circuit.get_specs())
             >>> print(circuit.get_visualization())
         """
-        # Determine whether to use knowledge augmentation
+        qnode, code = self._generate_internal(description, use_knowledge)
         should_use_knowledge = (
             use_knowledge if use_knowledge is not None else self.use_knowledge
         )
 
-        # Get knowledge context if enabled
-        knowledge_context = ""
-        if should_use_knowledge and self.knowledge_augmenter:
-            knowledge_context = self._retrieve_knowledge(description)
-
-        # Generate code with knowledge context
-        code = self.llm_client.generate_circuit_code(description, knowledge_context)
-        self._validate_code(code)
-        qnode = self._execute_code(code)
-
-        # Create circuit representation
-        circuit_repr = CircuitRepresentation(
+        return CircuitRepresentation(
             qnode=qnode,
             code=code,
             description=description,
@@ -326,5 +300,3 @@ Generate valid PennyLane circuit code from this description: {description}"""
                 ),
             },
         )
-
-        return circuit_repr

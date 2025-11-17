@@ -209,76 +209,6 @@ snippet3
         formatted = client.format_for_prompt("")
         assert formatted == ""
 
-    def test_operation_docs_topic_formatting(self):
-        """Test operation documentation query formatting."""
-        client = Context7Client()
-
-        # Mock the get_docs method to capture the topic
-        called_topics = []
-
-        def mock_get_docs(topic, tokens=None, use_cache=True):
-            called_topics.append(topic)
-            return None
-
-        client.get_docs = mock_get_docs
-
-        client.get_operation_docs("Hadamard")
-        assert len(called_topics) == 1
-        assert "qml.Hadamard" in called_topics[0]
-        assert "Hadamard" in called_topics[0]
-        assert "gate" in called_topics[0]
-
-    def test_decorator_docs_topic_formatting(self):
-        """Test decorator documentation query formatting."""
-        client = Context7Client()
-
-        called_topics = []
-
-        def mock_get_docs(topic, tokens=None, use_cache=True):
-            called_topics.append(topic)
-            return None
-
-        client.get_docs = mock_get_docs
-
-        client.get_decorator_docs("qnode")
-        assert len(called_topics) == 1
-        assert "@qml.qnode" in called_topics[0]
-        assert "decorator" in called_topics[0]
-
-    def test_device_docs_topic_formatting(self):
-        """Test device documentation query formatting."""
-        client = Context7Client()
-
-        called_topics = []
-
-        def mock_get_docs(topic, tokens=None, use_cache=True):
-            called_topics.append(topic)
-            return None
-
-        client.get_docs = mock_get_docs
-
-        client.get_device_docs("default.qubit")
-        assert len(called_topics) == 1
-        assert "qml.device" in called_topics[0]
-        assert "default.qubit" in called_topics[0]
-
-    def test_template_docs_topic_formatting(self):
-        """Test template documentation query formatting."""
-        client = Context7Client()
-
-        called_topics = []
-
-        def mock_get_docs(topic, tokens=None, use_cache=True):
-            called_topics.append(topic)
-            return None
-
-        client.get_docs = mock_get_docs
-
-        client.get_template_docs("AngleEmbedding")
-        assert len(called_topics) == 1
-        assert "qml.AngleEmbedding" in called_topics[0]
-        assert "template" in called_topics[0]
-
     def test_cache_docs_method(self):
         """Test manually caching documentation."""
         client = Context7Client()
@@ -374,23 +304,3 @@ snippet3
         client = Context7Client(library_id=custom_id)
 
         assert client.library_id == custom_id
-
-    def test_fetch_docs_compatibility(self):
-        """Test fetch_docs method for backward compatibility."""
-        client = Context7Client()
-
-        topic = "qml.device"
-        test_docs = "Device documentation"
-
-        # Cache docs first
-        client.cache_docs(topic, test_docs)
-
-        # fetch_docs should return cached docs
-        docs = client.fetch_docs(topic)
-        assert docs == test_docs
-
-    def test_resolve_library_id_static_method(self):
-        """Test resolve_library_id static method."""
-        # This is a placeholder method that returns None
-        result = Context7Client.resolve_library_id("pennylane")
-        assert result is None  # Signals that MCP call is needed

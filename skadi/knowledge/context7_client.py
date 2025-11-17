@@ -180,27 +180,6 @@ class Context7Client:
 
         return formatted
 
-    def fetch_docs(
-        self, topic: str, context7_library_id: Optional[str] = None
-    ) -> Optional[str]:
-        """
-        Fetch documentation from Context7 MCP.
-
-        This is a compatibility method that was used in the previous implementation.
-        It now uses the MCP-based approach.
-
-        Args:
-            topic: Topic to fetch documentation for.
-            context7_library_id: Context7 library identifier (defaults to PENNYLANE_LIBRARY_ID).
-
-        Returns:
-            Documentation string from cache, or None if MCP call needed.
-        """
-        if context7_library_id:
-            self.library_id = context7_library_id
-
-        return self.get_docs(topic)
-
     def clear_cache(self) -> None:
         """Clear the documentation cache."""
         self.cache.clear()
@@ -285,83 +264,6 @@ class Context7Client:
             formatted += f"Example {i}:\n```python\n{snippet}\n```\n\n"
 
         return formatted
-
-    # Convenience methods for common queries
-
-    def get_operation_docs(self, operation: str) -> Optional[str]:
-        """
-        Get documentation for a specific PennyLane operation.
-
-        Args:
-            operation: Operation name (e.g., "Hadamard", "CNOT", "RX", "expval").
-
-        Returns:
-            Documentation string if found, None otherwise.
-        """
-        topic = f"qml.{operation} {operation} gate operation"
-        return self.get_docs(topic)
-
-    def get_decorator_docs(self, decorator: str) -> Optional[str]:
-        """
-        Get documentation for PennyLane decorators.
-
-        Args:
-            decorator: Decorator name (e.g., "qnode", "qfunc_transform").
-
-        Returns:
-            Documentation string if found, None otherwise.
-        """
-        topic = f"@qml.{decorator} {decorator} decorator"
-        return self.get_docs(topic)
-
-    def get_device_docs(self, device_type: str = "default.qubit") -> Optional[str]:
-        """
-        Get documentation for PennyLane devices.
-
-        Args:
-            device_type: Device type (e.g., "default.qubit", "default.mixed").
-
-        Returns:
-            Documentation string if found, None otherwise.
-        """
-        topic = f"qml.device {device_type} device initialization"
-        return self.get_docs(topic)
-
-    def get_template_docs(self, template: str) -> Optional[str]:
-        """
-        Get documentation for PennyLane circuit templates.
-
-        Args:
-            template: Template name (e.g., "AngleEmbedding", "StronglyEntanglingLayers").
-
-        Returns:
-            Documentation string if found, None otherwise.
-        """
-        topic = f"qml.{template} {template} template circuit"
-        return self.get_docs(topic)
-
-    # New MCP-specific methods
-
-    @staticmethod
-    def resolve_library_id(library_name: str) -> Optional[str]:
-        """
-        Resolve a library name to its Context7-compatible library ID.
-
-        This method is a placeholder that signals the need for an MCP call.
-        The actual resolution must be done by calling code using the
-        mcp__context7__resolve-library-id tool.
-
-        Args:
-            library_name: Name of the library to resolve (e.g., "pennylane").
-
-        Returns:
-            None (signals that MCP call is needed).
-
-        Note:
-            The calling code should use mcp__context7__resolve-library-id
-            and then create a Context7Client with the returned library_id.
-        """
-        return None
 
     def needs_mcp_call(self, topic: str, tokens: Optional[int] = None) -> bool:
         """

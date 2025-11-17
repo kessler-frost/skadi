@@ -82,10 +82,6 @@ class CircuitAnalyzer:
 
         if include_explanation and self.llm_client:
             analysis["explanation"] = self._generate_explanation(circuit, analysis)
-        elif include_explanation:
-            analysis["explanation"] = (
-                "LLM client not available for explanation generation"
-            )
 
         return analysis
 

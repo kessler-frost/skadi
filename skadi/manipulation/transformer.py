@@ -46,9 +46,7 @@ class CircuitTransformer:
         "transpile": transforms.transpile,
     }
 
-    def __init__(self):
-        """Initialize the circuit transformer."""
-        self.all_transforms = {**self.TRANSFORMS, **self.PARAMETERIZED_TRANSFORMS}
+    ALL_TRANSFORMS: Dict[str, Callable] = {**TRANSFORMS, **PARAMETERIZED_TRANSFORMS}
 
     def list_transforms(self) -> list[str]:
         """Get list of available transform names.
@@ -56,7 +54,7 @@ class CircuitTransformer:
         Returns:
             List of transform names that can be applied
         """
-        return list(self.all_transforms.keys())
+        return list(self.ALL_TRANSFORMS.keys())
 
     def apply_transform(
         self,
@@ -93,7 +91,7 @@ class CircuitTransformer:
         if circuit.qnode is None:
             raise ValueError("Circuit must have a qnode to apply transforms")
 
-        if transform_name not in self.all_transforms:
+        if transform_name not in self.ALL_TRANSFORMS:
             available = ", ".join(self.list_transforms())
             raise ValueError(
                 f"Unknown transform '{transform_name}'. "
@@ -104,7 +102,7 @@ class CircuitTransformer:
         before_specs = circuit.get_specs()
 
         # Get the transform function
-        transform_func = self.all_transforms[transform_name]
+        transform_func = self.ALL_TRANSFORMS[transform_name]
 
         # Apply transform with parameters if provided
         if kwargs:
@@ -172,10 +170,10 @@ class CircuitTransformer:
         Raises:
             ValueError: If transform_name is not recognized
         """
-        if transform_name not in self.all_transforms:
+        if transform_name not in self.ALL_TRANSFORMS:
             raise ValueError(f"Unknown transform: {transform_name}")
 
-        transform_func = self.all_transforms[transform_name]
+        transform_func = self.ALL_TRANSFORMS[transform_name]
 
         info = {
             "name": transform_name,

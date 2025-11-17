@@ -42,10 +42,6 @@ class CircuitOptimizer:
         ],
     }
 
-    def __init__(self):
-        """Initialize the circuit optimizer."""
-        pass
-
     def optimize(
         self,
         circuit: CircuitRepresentation,

@@ -1,5 +1,6 @@
 """LLM client for natural language to PennyLane circuit generation."""
 
+import re
 from typing import Optional
 
 from agno.agent import Agent
@@ -94,20 +95,12 @@ Now generate the code for: {description}"""
         else:
             prompt = f"{base_prompt}\n\nNow generate the code for: {description}"
 
-        try:
-            # Use the agent to generate the response
-            response = self.agent.run(prompt)
-            code = response.content.strip()
+        response = self.agent.run(prompt)
+        code = response.content.strip()
 
-            # Remove markdown code blocks if present
-            if code.startswith("```python"):
-                code = code[len("```python") :].strip()
-            if code.startswith("```"):
-                code = code[3:].strip()
-            if code.endswith("```"):
-                code = code[:-3].strip()
+        # Remove markdown code blocks if present
+        code = re.sub(
+            r"^```(?:python)?\s*|\s*```$", "", code, flags=re.MULTILINE
+        ).strip()
 
-            return code
-
-        except Exception as e:
-            raise Exception(f"Failed to generate circuit code: {str(e)}")
+        return code

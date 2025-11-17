@@ -1,6 +1,6 @@
 """Unified interface for circuit manipulation operations."""
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from skadi.config import settings
 from skadi.core.circuit_representation import CircuitRepresentation
@@ -67,51 +67,6 @@ class CircuitManipulator:
         self.optimizer = CircuitOptimizer()
         self.analyzer = CircuitAnalyzer(self.llm_client, self.knowledge_augmenter)
         self.rewriter = CircuitRewriter(self.llm_client, self.knowledge_augmenter)
-
-    def transform(
-        self,
-        circuit: CircuitRepresentation,
-        transform_name: str,
-        **kwargs: Any,
-    ) -> CircuitRepresentation:
-        """Apply a transformation to a circuit.
-
-        Args:
-            circuit: Circuit to transform
-            transform_name: Name of transform (e.g., "cancel_inverses", "merge_rotations")
-            **kwargs: Additional parameters for the transform
-
-        Returns:
-            Transformed circuit
-
-        Example:
-            >>> manipulator = CircuitManipulator()
-            >>> transformed = manipulator.transform(circuit, "cancel_inverses")
-        """
-        return self.transformer.apply_transform(circuit, transform_name, **kwargs)
-
-    def transform_sequence(
-        self,
-        circuit: CircuitRepresentation,
-        transforms: List[tuple[str, Optional[Dict[str, Any]]]],
-    ) -> CircuitRepresentation:
-        """Apply a sequence of transformations.
-
-        Args:
-            circuit: Circuit to transform
-            transforms: List of (transform_name, params) tuples
-
-        Returns:
-            Circuit with all transforms applied
-
-        Example:
-            >>> transforms = [
-            ...     ("cancel_inverses", None),
-            ...     ("merge_rotations", None),
-            ... ]
-            >>> result = manipulator.transform_sequence(circuit, transforms)
-        """
-        return self.transformer.apply_sequence(circuit, transforms)
 
     def optimize(
         self,
@@ -240,83 +195,3 @@ class CircuitManipulator:
             >>> report = manipulator.get_optimization_report(optimized)
         """
         return self.optimizer.get_optimization_report(circuit)
-
-    def list_transforms(self) -> List[str]:
-        """List available transforms.
-
-        Returns:
-            List of transform names
-
-        Example:
-            >>> manipulator = CircuitManipulator()
-            >>> print(manipulator.list_transforms())
-        """
-        return self.transformer.list_transforms()
-
-    def get_transform_info(self, transform_name: str) -> Dict[str, Any]:
-        """Get information about a specific transform.
-
-        Args:
-            transform_name: Name of the transform
-
-        Returns:
-            Transform information dictionary
-
-        Example:
-            >>> info = manipulator.get_transform_info("cancel_inverses")
-            >>> print(info["description"])
-        """
-        return self.transformer.get_transform_info(transform_name)
-
-    def simplify(self, circuit: CircuitRepresentation) -> CircuitRepresentation:
-        """Simplify a circuit while maintaining functionality.
-
-        This is a convenience method that uses LLM-guided simplification.
-
-        Args:
-            circuit: Circuit to simplify
-
-        Returns:
-            Simplified circuit
-
-        Example:
-            >>> manipulator = CircuitManipulator()
-            >>> simplified = manipulator.simplify(circuit)
-        """
-        return self.rewriter.explain_and_simplify(circuit)
-
-    def compare_levels(
-        self, circuit: CircuitRepresentation
-    ) -> Dict[str, CircuitRepresentation]:
-        """Compare all optimization levels on a circuit.
-
-        Args:
-            circuit: Circuit to optimize at different levels
-
-        Returns:
-            Dictionary mapping level names to optimized circuits
-
-        Example:
-            >>> manipulator = CircuitManipulator()
-            >>> results = manipulator.compare_levels(circuit)
-            >>> for level, opt_circuit in results.items():
-            ...     print(f"{level}: {opt_circuit.get_resource_summary()}")
-        """
-        return self.optimizer.compare_levels(circuit)
-
-    def get_gate_analysis(self, circuit: CircuitRepresentation) -> Dict[str, Any]:
-        """Analyze gate usage in a circuit.
-
-        Args:
-            circuit: Circuit to analyze
-
-        Returns:
-            Dictionary with gate analysis including single/multi-qubit breakdown
-
-        Example:
-            >>> manipulator = CircuitManipulator()
-            >>> gate_info = manipulator.get_gate_analysis(circuit)
-            >>> print(f"Single-qubit: {gate_info['single_qubit_count']}")
-            >>> print(f"Multi-qubit: {gate_info['multi_qubit_count']}")
-        """
-        return self.analyzer.get_gate_analysis(circuit)
