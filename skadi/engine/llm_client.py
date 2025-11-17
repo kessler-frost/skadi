@@ -85,7 +85,9 @@ Guidelines:
 - Add brief comments explaining the circuit structure
 - Return only the Python code, no explanations
 - Use 'dev = qml.device("default.qubit", wires=N)' where N is the number of qubits needed
-- Ensure the circuit returns measurements using qml.state() or qml.probs()
+- The circuit must return a measurement (use qml.state() or qml.probs())
+- DO NOT include any example usage, execution calls, or print statements
+- ONLY include: imports, device creation, and the circuit function definition
 
 Example format:
 import pennylane as qml

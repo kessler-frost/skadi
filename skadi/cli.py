@@ -14,7 +14,9 @@ from skadi.core.circuit_manipulator import CircuitManipulator
 from skadi.core.circuit_representation import CircuitRepresentation
 
 app = typer.Typer(
-    help="Skadi - Generate and manipulate quantum circuits using natural language"
+    help="Skadi - Generate and manipulate quantum circuits using natural language",
+    invoke_without_command=True,
+    no_args_is_help=True,
 )
 console = Console()
 
@@ -28,7 +30,7 @@ def detect_intent(command: str) -> str:
         command: Natural language command string
 
     Returns:
-        Intent string: "create", "modify", "optimize", "show"
+        Intent string: "create", "modify", "optimize"
     """
     command_lower = command.lower()
 
@@ -43,9 +45,6 @@ def detect_intent(command: str) -> str:
 
     if "optimize" in command_lower:
         return "optimize"
-
-    if any(keyword in command_lower for keyword in ["show", "display", "visualize"]):
-        return "show"
 
     # Default: create if no circuit exists, otherwise modify
     return "create" if not CIRCUIT_FILE.exists() else "modify"
@@ -135,33 +134,46 @@ def display_code(code: str, title: str = "Generated Code") -> None:
     console.print()
 
 
-@app.command()
-def main(
-    command: str,
+@app.command(name="show")
+def show_command(
     with_code: bool = typer.Option(False, "--with-code", help="Display generated code"),
 ) -> None:
-    """Process natural language commands to generate or manipulate quantum circuits.
+    """Display the current circuit."""
+    circuit = load_circuit()
+    if circuit is None:
+        console.print("[yellow]No circuit found.[/yellow] Create one first.")
+        raise typer.Exit(1)
 
-    Args:
-        command: Natural language description of desired circuit or operation
-        with_code: If True, display the generated code
+    visualize_circuit(circuit, "Current Circuit")
+    if with_code:
+        display_code(circuit.code)
 
-    Examples:
-        skadi "Create a Bell state circuit"
-        skadi "Modify the circuit to add a phase gate" --with-code
-        skadi "Optimize the current circuit"
-        skadi "Show the current circuit"
-        skadi clear  (to remove circuit.py)
-    """
-    # Handle "clear" as a special command
-    if command.lower().strip() == "clear":
-        if not CIRCUIT_FILE.exists():
-            console.print("[yellow]No circuit file found.[/yellow]")
-            raise typer.Exit(0)
 
-        CIRCUIT_FILE.unlink()
-        console.print(f"[green]✓[/green] Removed {CIRCUIT_FILE}")
+@app.command(name="clear")
+def clear_command() -> None:
+    """Remove the circuit.py file."""
+    if not CIRCUIT_FILE.exists():
+        console.print("[yellow]No circuit file found.[/yellow]")
         raise typer.Exit(0)
+
+    CIRCUIT_FILE.unlink()
+    console.print(f"[green]✓[/green] Removed {CIRCUIT_FILE}")
+
+
+@app.callback(invoke_without_command=True)
+def main(
+    ctx: typer.Context,
+    command: Optional[str] = typer.Argument(None, help="Natural language description"),
+    with_code: bool = typer.Option(False, "--with-code", help="Display generated code"),
+) -> None:
+    """Generate and manipulate quantum circuits using natural language."""
+    # If a subcommand was invoked, skip this callback
+    if ctx.invoked_subcommand is not None:
+        return
+
+    # If no command provided, show help
+    if command is None:
+        return
 
     # Check API key
     if not settings.skadi_api_key:
@@ -171,18 +183,6 @@ def main(
 
     # Detect intent
     intent = detect_intent(command)
-
-    # Handle "show" intent
-    if intent == "show":
-        circuit = load_circuit()
-        if circuit is None:
-            console.print("[yellow]No circuit found.[/yellow] Create one first.")
-            raise typer.Exit(1)
-
-        visualize_circuit(circuit, "Current Circuit")
-        if with_code:
-            display_code(circuit.code)
-        raise typer.Exit(0)
 
     # Handle "create" intent
     if intent == "create":

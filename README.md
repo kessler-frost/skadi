@@ -37,7 +37,10 @@ skadi "add a third qubit with hadamard"
 skadi "optimize the circuit"
 
 # Show current circuit
-skadi "show"
+skadi show
+
+# Clear circuit file
+skadi clear
 ```
 
 All circuits are saved to `circuit.py` and visualized as ASCII art in your terminal.
@@ -56,6 +59,14 @@ skadi "create a quantum fourier transform for 4 qubits"
 ```bash
 skadi "add a rotation gate before the CNOT"
 skadi "optimize the circuit aggressively"
+```
+
+**View and manage:**
+
+```bash
+skadi show              # Display current circuit
+skadi show --with-code  # Show circuit with code
+skadi clear             # Remove circuit.py
 ```
 
 ## Python API

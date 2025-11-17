@@ -64,10 +64,13 @@ skadi/
 The CLI component provides a natural language interface to Skadi:
 
 - **Entry Point**: `skadi/cli.py` - Typer-based CLI with Rich terminal output
-- **Circuit File Manager**: `skadi/core/circuit_file_manager.py` - Handles save/load of circuit.py
-- **Visualizer**: `skadi/core/visualizer.py` - Uses PennyLane's qml.draw() for ASCII diagrams
+- **Commands**:
+  - Default callback: Natural language processing (create/modify/optimize)
+  - `show`: Display current circuit (separate command)
+  - `clear`: Remove circuit.py (separate command)
 - **Workflow**: All commands work with a single `circuit.py` file in the current directory
-- **Intent Detection**: Automatically detects create/modify/optimize/show operations from natural language
+- **Intent Detection**: Automatically detects create/modify/optimize operations from natural language
+- **Code Generation**: LLM generates clean circuit code without print statements or example usage
 
 ## Configuration Management
 
