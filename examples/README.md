@@ -17,7 +17,6 @@ This directory contains example scripts demonstrating various features of Skadi.
 
    - `OPENROUTER_API_KEY` - Required for circuit generation (get from [OpenRouter](https://openrouter.ai/))
    - `OPENAI_API_KEY` - Required for knowledge base features (get from [OpenAI](https://platform.openai.com/))
-   - `ANTHROPIC_API_KEY` - Optional for Context7 features (get from [Anthropic](https://console.anthropic.com/))
 
 ## Examples Overview
 
@@ -35,6 +34,23 @@ uv run python examples/generate_circuit.py
 - Initialize CircuitGenerator
 - Generate Bell state and superposition circuits
 - View generated code and circuit output
+
+**Requirements:** `OPENROUTER_API_KEY`
+
+#### `circuit_manipulation_demo.py` ✅
+
+Comprehensive demonstration of circuit manipulation features.
+
+```bash
+uv run python examples/circuit_manipulation_demo.py
+```
+
+**Features:**
+- Transform: Apply PennyLane transforms (cancel_inverses, merge_rotations, etc.)
+- Optimize: Reduce gate count and depth with different optimization levels
+- Understand: Analyze and explain circuit structure
+- Rewrite: Modify circuits with natural language
+- Complete workflows: Chain operations for complex manipulations
 
 **Requirements:** `OPENROUTER_API_KEY`
 
@@ -69,7 +85,7 @@ uv run python examples/enhanced_generation_demo.py
 - Knowledge-augmented circuit generation
 - Comparison with/without knowledge
 
-**Requirements:** `OPENROUTER_API_KEY`, `ANTHROPIC_API_KEY` (optional)
+**Requirements:** `OPENROUTER_API_KEY`
 
 ### Documentation Tools
 
@@ -122,8 +138,9 @@ PYTHONPATH=. uv run python examples/context7_live_mcp_example.py
 | Example | Purpose | Requirements | Status |
 |---------|---------|--------------|--------|
 | `generate_circuit.py` | Basic circuit generation | OPENROUTER_API_KEY | ✅ |
+| `circuit_manipulation_demo.py` | Circuit manipulation features | OPENROUTER_API_KEY | ✅ |
 | `use_knowledge_base.py` | Knowledge base demo | OPENAI_API_KEY | ✅ |
-| `enhanced_generation_demo.py` | Dual knowledge system | OPENROUTER_API_KEY, ANTHROPIC_API_KEY (opt) | ✅ |
+| `enhanced_generation_demo.py` | Dual knowledge system | OPENROUTER_API_KEY | ✅ |
 | `scrape_docs.py` | Documentation scraping | None | ✅ |
 | `context7_mcp_demo.py` | Context7 API demo | None | ✅ |
 | `context7_live_mcp_example.py` | Live MCP usage | Claude Code env | ⚠️  |

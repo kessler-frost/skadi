@@ -39,9 +39,10 @@ Skadi generates PennyLane quantum circuits from natural language using LLM orche
 ```
 skadi/
 ├── skadi/
-│   ├── core/          # Circuit generation and validation
+│   ├── core/          # Circuit generation, validation, and file management
 │   ├── engine/        # LLM client and knowledge base (Agno RAG)
 │   ├── knowledge/     # Dual knowledge sources (Agno KB + Context7)
+│   ├── manipulation/  # Circuit transformations, optimization, and analysis
 │   └── utils/         # Documentation scraper (Crawl4AI)
 ├── tests/             # Test suite
 ├── examples/          # Example scripts
