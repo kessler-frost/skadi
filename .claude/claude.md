@@ -40,7 +40,7 @@ Skadi generates PennyLane quantum circuits from natural language using LLM orche
 
 ### Project Structure
 
-```
+```bash
 skadi/
 ├── skadi/
 │   ├── core/          # Circuit generation, validation, representation, and file management
@@ -64,10 +64,10 @@ skadi/
 The CLI component provides a natural language interface to Skadi:
 
 - **Entry Point**: `skadi/cli.py` - Typer-based CLI with Rich terminal output
-- **Commands**:
-  - Default callback: Natural language processing (create/modify/optimize)
-  - `show`: Display current circuit (separate command)
-  - `clear`: Remove circuit.py (separate command)
+- **Command Pattern**: Single command with match/case handling:
+  - `show`: Display current circuit (special keyword)
+  - `clear`: Remove circuit.py (special keyword)
+  - Everything else: Natural language processing (create/modify/optimize)
 - **Workflow**: All commands work with a single `circuit.py` file in the current directory
 - **Intent Detection**: Automatically detects create/modify/optimize operations from natural language
 - **Code Generation**: LLM generates clean circuit code without print statements or example usage
@@ -78,7 +78,7 @@ Skadi uses `pydantic-settings` for configuration. All settings are loaded from e
 
 ### Required Settings
 
-- `SKADI_API_KEY` - LLM provider API key (OpenRouter: https://openrouter.ai/, or your custom provider)
+- `SKADI_API_KEY` - LLM provider API key (OpenRouter: <https://openrouter.ai/>, or your custom provider)
 
 ### Optional LLM Settings
 

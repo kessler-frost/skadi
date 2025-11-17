@@ -14,9 +14,7 @@ from skadi.core.circuit_manipulator import CircuitManipulator
 from skadi.core.circuit_representation import CircuitRepresentation
 
 app = typer.Typer(
-    help="Skadi - Generate and manipulate quantum circuits using natural language",
-    invoke_without_command=True,
-    no_args_is_help=True,
+    help="Skadi - Generate and manipulate quantum circuits using natural language"
 )
 console = Console()
 
@@ -134,46 +132,33 @@ def display_code(code: str, title: str = "Generated Code") -> None:
     console.print()
 
 
-@app.command(name="show")
-def show_command(
-    with_code: bool = typer.Option(False, "--with-code", help="Display generated code"),
-) -> None:
-    """Display the current circuit."""
-    circuit = load_circuit()
-    if circuit is None:
-        console.print("[yellow]No circuit found.[/yellow] Create one first.")
-        raise typer.Exit(1)
-
-    visualize_circuit(circuit, "Current Circuit")
-    if with_code:
-        display_code(circuit.code)
-
-
-@app.command(name="clear")
-def clear_command() -> None:
-    """Remove the circuit.py file."""
-    if not CIRCUIT_FILE.exists():
-        console.print("[yellow]No circuit file found.[/yellow]")
-        raise typer.Exit(0)
-
-    CIRCUIT_FILE.unlink()
-    console.print(f"[green]✓[/green] Removed {CIRCUIT_FILE}")
-
-
-@app.callback(invoke_without_command=True)
+@app.command()
 def main(
-    ctx: typer.Context,
-    command: Optional[str] = typer.Argument(None, help="Natural language description"),
+    command: str = typer.Argument(
+        ..., help="Natural language description or 'show'/'clear'"
+    ),
     with_code: bool = typer.Option(False, "--with-code", help="Display generated code"),
 ) -> None:
     """Generate and manipulate quantum circuits using natural language."""
-    # If a subcommand was invoked, skip this callback
-    if ctx.invoked_subcommand is not None:
-        return
+    # Handle special commands using match/case
+    match command.lower().strip():
+        case "show":
+            circuit = load_circuit()
+            if circuit is None:
+                console.print("[yellow]No circuit found.[/yellow] Create one first.")
+                raise typer.Exit(1)
+            visualize_circuit(circuit, "Current Circuit")
+            if with_code:
+                display_code(circuit.code)
+            return
 
-    # If no command provided, show help
-    if command is None:
-        return
+        case "clear":
+            if not CIRCUIT_FILE.exists():
+                console.print("[yellow]No circuit file found.[/yellow]")
+                raise typer.Exit(0)
+            CIRCUIT_FILE.unlink()
+            console.print(f"[green]✓[/green] Removed {CIRCUIT_FILE}")
+            return
 
     # Check API key
     if not settings.skadi_api_key:
