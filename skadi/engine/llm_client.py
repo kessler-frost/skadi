@@ -4,37 +4,58 @@ import re
 from typing import Optional
 
 from agno.agent import Agent
+from agno.models.openai import OpenAILike
 from agno.models.openrouter import OpenRouter
 
 from skadi.config import settings
 
 
 class LLMClient:
-    """Client for interfacing with LLM via OpenRouter."""
+    """Client for interfacing with LLM providers."""
 
-    def __init__(self, api_key: Optional[str] = None, model: Optional[str] = None):
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        model: Optional[str] = None,
+        base_url: Optional[str] = None,
+    ):
         """
         Initialize the LLM client.
 
         Args:
-            api_key: OpenRouter API key. If None, uses settings.openrouter_api_key.
-            model: The model to use for generation. If None, uses settings.openrouter_model.
+            api_key: API key for the provider. If None, uses settings.skadi_api_key.
+            model: The model to use for generation. If None, uses settings.skadi_model.
+            base_url: Base URL for custom provider. If None, uses OpenRouter.
 
         Raises:
             ValueError: If API key is not provided and not found in settings.
         """
-        self.api_key = api_key or settings.openrouter_api_key
+        self.api_key = api_key or settings.skadi_api_key
         if not self.api_key:
             raise ValueError(
-                "OpenRouter API key not found. Please set OPENROUTER_API_KEY environment variable "
+                "API key not found. Please set SKADI_API_KEY environment variable "
                 "or pass api_key to LLMClient constructor."
             )
 
-        self.model_id = model or settings.openrouter_model
-        # Pass API key directly to OpenRouter instead of modifying environment
-        self.agent = Agent(
-            model=OpenRouter(id=self.model_id, api_key=self.api_key), markdown=False
-        )
+        self.model_id = model or settings.skadi_model
+        self.base_url = base_url if base_url is not None else settings.skadi_base_url
+
+        # Create agent with appropriate model based on base_url
+        llm_model = self._create_model()
+        self.agent = Agent(model=llm_model, markdown=False)
+
+    def _create_model(self):
+        """
+        Create appropriate Agno model based on base_url.
+
+        Returns:
+            Agno model instance (OpenRouter if base_url is None, otherwise OpenAILike).
+        """
+        if self.base_url is None:
+            # Default: Use OpenRouter
+            return OpenRouter(id=self.model_id, api_key=self.api_key)
+        # Custom provider: Use OpenAI-compatible API
+        return OpenAILike(id=self.model_id, api_key=self.api_key, base_url=self.base_url)
 
     def generate_circuit_code(
         self, description: str, knowledge_context: str = "", error_feedback: str = ""

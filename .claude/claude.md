@@ -30,7 +30,7 @@ Skadi generates PennyLane quantum circuits from natural language using LLM orche
 - **Path Handling**: Always use `pathlib.Path` instead of `os.path.*` functions
 - **Module Imports**: Avoid using `sys.path.insert()` or modifying `sys.path` - use proper package installation instead
 - **Configuration**: Always use the `settings` object from `skadi.config` instead of `os.getenv()` or `os.environ`
-- **Testing**: Unit tests should NOT require API keys - only functional/integration tests should require `OPENROUTER_API_KEY`
+- **Testing**: Unit tests should NOT require API keys - only functional/integration tests should require `SKADI_API_KEY`
 - **No Fallbacks**: NEVER add try/except fallbacks or backwards compatibility code - we only support current and upcoming versions of PennyLane
 - **Minimal try/except**: Keep if/else conditions and try/except blocks to an absolute minimum to avoid multiple code paths
 
@@ -53,7 +53,7 @@ skadi/
 
 - **PennyLane**: Quantum circuit framework
 - **Agno**: LLM orchestration and RAG framework
-- **OpenRouter**: LLM API gateway (Claude Haiku 4.5)
+- **LLM Providers**: Supports OpenRouter (default) and custom OpenAI-compatible providers
 - **LanceDB**: Vector database for embeddings
 - **Context7**: Static API documentation knowledge base
 - **Crawl4AI**: Documentation scraping
@@ -92,11 +92,15 @@ Skadi uses `pydantic-settings` for configuration. All settings are loaded from e
 
 ### Required Settings
 
-- `OPENROUTER_API_KEY` - Your OpenRouter API key (get from https://openrouter.ai/)
+- `SKADI_API_KEY` - LLM provider API key (OpenRouter: https://openrouter.ai/, or your custom provider)
 
-### Optional Settings
+### Optional LLM Settings
 
-- `OPENROUTER_MODEL` - Model to use (default: `anthropic/claude-haiku-4.5`)
+- `SKADI_MODEL` - Model to use (default: `anthropic/claude-haiku-4.5`)
+- `SKADI_BASE_URL` - Base URL for custom provider (if not set, uses OpenRouter)
+
+### Optional Knowledge Base Settings
+
 - `OPENAI_API_KEY` - OpenAI API key for embeddings (required for knowledge base features)
 - `USE_KNOWLEDGE` - Enable knowledge augmentation (default: `true`)
 - `USE_PENNYLANE_KB` - Enable PennyLane knowledge base (default: `true`)
@@ -111,15 +115,17 @@ See `.env.example` for all available configuration options with descriptions.
 from skadi import settings
 
 # Access configuration values
-print(f"Using model: {settings.openrouter_model}")
+print(f"Using model: {settings.skadi_model}")
+print(f"Using base URL: {settings.skadi_base_url or 'OpenRouter (default)'}")
 print(f"Knowledge enabled: {settings.use_knowledge}")
 
 # Create custom settings instance
 from skadi import Settings
 
 custom_settings = Settings(
-    openrouter_api_key="your-key",
-    openrouter_model="anthropic/claude-sonnet-3.5",
+    skadi_api_key="your-key",
+    skadi_model="anthropic/claude-sonnet-3.5",
+    skadi_base_url=None,  # None = OpenRouter, or set to custom URL
     use_knowledge=False
 )
 ```

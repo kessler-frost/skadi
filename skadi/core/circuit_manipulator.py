@@ -44,14 +44,14 @@ class CircuitManipulator:
         """Initialize the circuit manipulator.
 
         Args:
-            api_key: OpenRouter API key (for LLM-based operations). If None, uses settings.
+            api_key: LLM API key (for LLM-based operations). If None, uses settings.
             model: Model to use. If None, uses settings.
             use_knowledge: Enable knowledge augmentation for LLM operations
         """
         # Initialize LLM client for rewriting and analysis
         self.llm_client = LLMClient(
-            api_key=api_key or settings.openrouter_api_key,
-            model=model or settings.openrouter_model,
+            api_key=api_key or settings.skadi_api_key,
+            model=model or settings.skadi_model,
         )
 
         # Initialize knowledge augmenter if enabled

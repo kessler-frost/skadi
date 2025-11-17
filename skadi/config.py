@@ -15,9 +15,10 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # OpenRouter API Configuration
-    openrouter_api_key: str
-    openrouter_model: str = "anthropic/claude-haiku-4.5"
+    # LLM Provider Configuration
+    skadi_api_key: str
+    skadi_model: str = "anthropic/claude-haiku-4.5"
+    skadi_base_url: Optional[str] = None  # If None, uses OpenRouter; otherwise uses custom provider
 
     # OpenAI Configuration (for embeddings)
     openai_api_key: Optional[str] = None

@@ -164,8 +164,8 @@ def main(
         raise typer.Exit(0)
 
     # Check API key
-    if not settings.openrouter_api_key:
-        console.print("[red]Error:[/red] OPENROUTER_API_KEY not set")
+    if not settings.skadi_api_key:
+        console.print("[red]Error:[/red] SKADI_API_KEY not set")
         console.print("Please set it in your .env file or environment")
         raise typer.Exit(1)
 

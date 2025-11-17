@@ -33,8 +33,8 @@ class CircuitGenerator:
         Initialize the circuit generator.
 
         Args:
-            api_key: OpenRouter API key. If None, uses settings.openrouter_api_key.
-            model: The model to use for generation. If None, uses settings.openrouter_model.
+            api_key: LLM API key. If None, uses settings.skadi_api_key.
+            model: The model to use for generation. If None, uses settings.skadi_model.
             use_knowledge: Whether to use knowledge augmentation. If None, uses settings.use_knowledge.
             use_pennylane_kb: Whether to use PennyLane knowledge base. If None, uses settings.use_pennylane_kb.
             use_context7: Whether to use Context7 API docs. If None, uses settings.use_context7.
@@ -43,7 +43,7 @@ class CircuitGenerator:
         # Use settings as defaults, allow constructor overrides
         self.llm_client = LLMClient(
             api_key=api_key,
-            model=model or settings.openrouter_model,
+            model=model or settings.skadi_model,
         )
         self.use_knowledge = (
             use_knowledge if use_knowledge is not None else settings.use_knowledge

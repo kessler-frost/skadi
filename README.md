@@ -15,11 +15,14 @@ uvx --from git+https://github.com/kessler-frost/skadi skadi "create a bell state
 # Or install/upgrade as a tool (always gets latest version)
 uv tool install --reinstall git+https://github.com/kessler-frost/skadi
 
-# Set your API key
-export OPENROUTER_API_KEY="your-key-here"
+# Set your API key (defaults to OpenRouter)
+export SKADI_API_KEY="your-key-here"
 ```
 
-Get an API key from <https://openrouter.ai/>
+**Get an API key:**
+
+- OpenRouter (default): <https://openrouter.ai/>
+- Or use any OpenAI-compatible provider by setting `SKADI_BASE_URL`
 
 ## Quick Start
 
