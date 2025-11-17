@@ -2,6 +2,10 @@
 
 Generate and manipulate PennyLane quantum circuits using natural language.
 
+## Demo
+
+[![asciicast](https://asciinema.org/a/5tPVHZkadxka6A8qcBzY2850l.svg)](https://asciinema.org/a/5tPVHZkadxka6A8qcBzY2850l)
+
 ## Installation
 
 ```bash
