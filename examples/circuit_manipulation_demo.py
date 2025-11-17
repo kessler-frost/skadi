@@ -52,11 +52,15 @@ def demo_optimization():
 
     # Get optimization report
     report = manipulator.get_optimization_report(optimized)
-    print(f"\nOptimization Report:")
+    print("\nOptimization Report:")
     print(f"  Optimizations applied: {report['optimizations_applied']}")
     if report.get("total_improvement"):
-        print(f"  Total operations reduced: {report['total_improvement'].get('total_operations_reduced', 0)}")
-        print(f"  Total depth reduced: {report['total_improvement'].get('total_depth_reduced', 0)}")
+        print(
+            f"  Total operations reduced: {report['total_improvement'].get('total_operations_reduced', 0)}"
+        )
+        print(
+            f"  Total depth reduced: {report['total_improvement'].get('total_depth_reduced', 0)}"
+        )
     if report.get("summary"):
         print(f"\nSummary: {report['summary']}")
 
@@ -79,7 +83,7 @@ def demo_understanding():
     print(f"Qubits: {analysis['specs']['num_wires']}")
 
     if analysis.get("explanation"):
-        print(f"\nExplanation:")
+        print("\nExplanation:")
         print(analysis["explanation"])
 
 
@@ -123,15 +127,15 @@ def demo_comparison():
         original, optimized, names=("Original", "Optimized")
     )
 
-    print(f"\nOriginal Circuit:")
+    print("\nOriginal Circuit:")
     print(f"  Operations: {comparison['circuit1']['operations']}")
     print(f"  Depth: {comparison['circuit1']['depth']}")
 
-    print(f"\nOptimized Circuit:")
+    print("\nOptimized Circuit:")
     print(f"  Operations: {comparison['circuit2']['operations']}")
     print(f"  Depth: {comparison['circuit2']['depth']}")
 
-    print(f"\nDifferences:")
+    print("\nDifferences:")
     print(f"  Operations: {comparison['differences']['operations']}")
     print(f"  Depth: {comparison['differences']['depth']}")
 

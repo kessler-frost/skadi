@@ -110,7 +110,9 @@ class CircuitRewriter:
             raise ValueError(f"Code validation failed: {validation_error}")
 
         # Execute to get the qnode
-        modified_qnode, execution_error = temp_generator._try_execute_code(modified_code)
+        modified_qnode, execution_error = temp_generator._try_execute_code(
+            modified_code
+        )
         if execution_error:
             raise ValueError(f"Code execution failed: {execution_error}")
 

@@ -55,7 +55,9 @@ class LLMClient:
             # Default: Use OpenRouter
             return OpenRouter(id=self.model_id, api_key=self.api_key)
         # Custom provider: Use OpenAI-compatible API
-        return OpenAILike(id=self.model_id, api_key=self.api_key, base_url=self.base_url)
+        return OpenAILike(
+            id=self.model_id, api_key=self.api_key, base_url=self.base_url
+        )
 
     def generate_circuit_code(
         self, description: str, knowledge_context: str = "", error_feedback: str = ""
