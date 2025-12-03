@@ -6,8 +6,13 @@ from typing import Optional
 import typer
 from rich.console import Console
 from rich.panel import Panel
+from rich.prompt import Prompt
 from rich.syntax import Syntax
+from rich.table import Table
 
+from skadi.backends.executor import CircuitExecutor
+from skadi.backends.recommender import BackendRecommender, Recommendation
+from skadi.backends.registry import BackendRegistry
 from skadi.config import settings
 from skadi.core.circuit_generator import CircuitGenerator
 from skadi.core.circuit_manipulator import CircuitManipulator
@@ -250,6 +255,200 @@ def main(
 
         save_circuit(modified)
         raise typer.Exit(0)
+
+
+def _display_backend_menu(recommendations: list[Recommendation]) -> None:
+    """Display backend selection menu with Rich."""
+    table = Table(title="Available Backends")
+    table.add_column("Backend", style="cyan")
+    table.add_column("Type", style="magenta")
+    table.add_column("Score", style="green")
+    table.add_column("Notes", style="yellow")
+
+    for i, rec in enumerate(recommendations):
+        info = rec.backend_status.info
+        notes = ", ".join(rec.reasons[:2])
+        if rec.warnings:
+            notes += f" [dim]({rec.warnings[0]})[/dim]"
+
+        # Mark recommended backend
+        name = info.name
+        if i == 0:
+            name = f"{name} [green](recommended)[/green]"
+
+        table.add_row(
+            name,
+            info.backend_type.value,
+            f"{rec.score:.0f}",
+            notes,
+        )
+
+    console.print(table)
+
+
+def _display_results(result: any) -> None:
+    """Display execution results."""
+    import numpy as np
+
+    console.print()
+    console.print(Panel.fit("[bold green]Execution Results[/bold green]"))
+
+    if not hasattr(result, "__iter__") or isinstance(result, str):
+        console.print(f"[cyan]Result:[/cyan] {result}")
+        console.print()
+        return
+
+    result_array = np.array(result)
+
+    # 2D array: density matrix
+    if result_array.ndim == 2:
+        console.print("[cyan]Density Matrix (diagonal populations):[/cyan]")
+        num_bits = int(np.log2(result_array.shape[0]))
+        for i in range(result_array.shape[0]):
+            population = np.real(result_array[i, i])
+            if population > 1e-10:
+                console.print(
+                    f"  |{i:0{num_bits}b}⟩⟨{i:0{num_bits}b}|: {population:.4f}"
+                )
+        console.print()
+        return
+
+    # 1D complex array: state vector
+    if result_array.dtype in [np.complex64, np.complex128]:
+        console.print("[cyan]State Vector:[/cyan]")
+        num_bits = int(np.log2(len(result_array)))
+        for i, amp in enumerate(result_array):
+            if np.abs(amp) > 1e-10:
+                console.print(f"  |{i:0{num_bits}b}⟩: {amp:.4f}")
+        console.print()
+        return
+
+    # 1D real array: probabilities or measurement results
+    if result_array.ndim == 1 and np.issubdtype(result_array.dtype, np.floating):
+        console.print("[cyan]Probabilities:[/cyan]")
+        num_bits = int(np.log2(len(result_array)))
+        for i, prob in enumerate(result_array):
+            if prob > 1e-10:
+                console.print(f"  |{i:0{num_bits}b}⟩: {prob:.4f}")
+        console.print()
+        return
+
+    # Fallback for other array types
+    console.print(f"[cyan]Result:[/cyan] {result}")
+    console.print()
+
+
+@app.command()
+def run(
+    shots: Optional[int] = typer.Option(None, "--shots", "-s", help="Number of shots"),
+    backend: Optional[str] = typer.Option(None, "--backend", "-b", help="Backend name"),
+    auto: bool = typer.Option(False, "--auto", "-a", help="Auto-select best backend"),
+    cloud: bool = typer.Option(False, "--cloud", help="Allow cloud backends"),
+) -> None:
+    """Execute the current circuit on a quantum backend.
+
+    Shows available backends with recommendations and lets user choose.
+
+    Examples:
+        skadi run                    # Show backend menu, user picks
+        skadi run --auto             # Auto-select recommended backend
+        skadi run --backend default.qubit --shots 1000
+        skadi run --cloud            # Include cloud backends in options
+    """
+    circuit = load_circuit()
+    if circuit is None:
+        console.print(
+            "[red]No circuit found.[/red] Create one first with 'skadi create'"
+        )
+        raise typer.Exit(1)
+
+    registry = BackendRegistry()
+    recommender = BackendRecommender(registry)
+    executor = CircuitExecutor(registry)
+
+    # Get recommendations
+    recommendations = recommender.recommend(circuit, allow_cloud=cloud)
+
+    if not recommendations:
+        console.print("[red]No available backends found.[/red]")
+        raise typer.Exit(1)
+
+    # Determine which backend to use
+    if backend:
+        selected_backend = backend
+    elif auto:
+        selected_backend = recommendations[0].backend_status.info.name
+        console.print(
+            f"[dim]Auto-selected backend:[/dim] [cyan]{selected_backend}[/cyan]"
+        )
+    else:
+        # Display backend options and prompt user
+        _display_backend_menu(recommendations)
+        console.print()
+        selected_backend = Prompt.ask(
+            "Select backend",
+            choices=[r.backend_status.info.name for r in recommendations],
+            default=recommendations[0].backend_status.info.name,
+        )
+
+    # Validate backend exists
+    if not registry.get(selected_backend):
+        available = [s.info.name for s in registry.list_available()]
+        console.print(f"[red]Backend '{selected_backend}' not available.[/red]")
+        console.print(f"Available: {', '.join(available)}")
+        raise typer.Exit(1)
+
+    # Execute
+    console.print()
+    console.print(f"[bold]Executing on {selected_backend}...[/bold]")
+
+    result = executor.execute(circuit, selected_backend, shots=shots)
+
+    # Display results
+    _display_results(result)
+
+
+@app.command()
+def backends(
+    all_backends: bool = typer.Option(False, "--all", "-a", help="Show all backends"),
+) -> None:
+    """List available execution backends.
+
+    Examples:
+        skadi backends        # List available backends
+        skadi backends --all  # List all backends (including unavailable)
+    """
+    registry = BackendRegistry()
+
+    if all_backends:
+        statuses = registry.list_all()
+    else:
+        statuses = registry.list_available()
+
+    table = Table(title="Quantum Backends")
+    table.add_column("Name", style="cyan")
+    table.add_column("Type", style="magenta")
+    table.add_column("Available", style="green")
+    table.add_column("Description")
+    table.add_column("Max Qubits")
+
+    for status in statuses:
+        info = status.info
+        if status.available:
+            available = "[green]Yes[/green]"
+        else:
+            available = f"[red]No[/red] - {status.availability_reason}"
+        max_q = str(info.max_wires) if info.max_wires else "unlimited"
+
+        table.add_row(
+            info.name,
+            info.backend_type.value,
+            available,
+            info.description,
+            max_q,
+        )
+
+    console.print(table)
 
 
 def cli() -> None:

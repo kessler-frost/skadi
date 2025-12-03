@@ -33,6 +33,8 @@ Skadi generates PennyLane quantum circuits from natural language using LLM orche
 
 - **Path Handling**: Always use `pathlib.Path` instead of `os.path.*` functions
 - **Module Imports**: Avoid using `sys.path.insert()` or modifying `sys.path` - use proper package installation instead
+- **Import Location**: Always place import statements at the top of the file, never inside functions (exception: optional dependency checks in `is_available()` methods)
+- **Type Hints**: Use proper type hints, not `Any` - for PennyLane devices use `from pennylane.devices import Device`
 - **Configuration**: Always use the `settings` object from `skadi.config` instead of `os.getenv()` or `os.environ`
 - **Testing**: Unit tests should NOT require API keys - only functional/integration tests should require `SKADI_API_KEY`
 - **No Fallbacks**: NEVER add try/except fallbacks or backwards compatibility code - we only support current and upcoming versions of PennyLane
