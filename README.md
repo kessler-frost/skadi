@@ -19,10 +19,12 @@ uv tool install --reinstall git+https://github.com/kessler-frost/skadi
 export SKADI_API_KEY="your-key-here"
 ```
 
-**Get an API key:**
+**LLM Providers:**
 
-- OpenRouter (default): <https://openrouter.ai/>
-- Or use any OpenAI-compatible provider by setting `SKADI_BASE_URL`
+- **OpenRouter** (default): <https://openrouter.ai/>
+- **LM Studio**: Set `SKADI_BASE_URL=http://localhost:1234/v1`
+- **Ollama**: Set `SKADI_BASE_URL=http://localhost:11434/v1`
+- Or any OpenAI-compatible API by setting `SKADI_BASE_URL`
 
 ## Quick Start
 

@@ -12,21 +12,28 @@ class TestLLMClient:
     def test_init_without_api_key_raises_error(self, monkeypatch):
         """Test that initializing without API key raises ValueError."""
         # Clear the environment variable
-        monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
+        monkeypatch.delenv("SKADI_API_KEY", raising=False)
 
-        # Mock the settings to return None for openrouter_api_key
+        # Mock the settings to return None for skadi_api_key
         from skadi import config
 
-        monkeypatch.setattr(config.settings, "openrouter_api_key", None)
+        monkeypatch.setattr(config.settings, "skadi_api_key", None)
 
-        with pytest.raises(ValueError, match="OpenRouter API key not found"):
+        with pytest.raises(ValueError, match="API key not found"):
             LLMClient()
 
     def test_init_with_api_key(self):
         """Test that initializing with API key works."""
         client = LLMClient(api_key="test_key")
         assert client.api_key == "test_key"
-        assert client.model_id == "anthropic/claude-haiku-4.5"
+        # Model should be set (either from settings or default)
+        assert client.model_id is not None
+
+    def test_init_with_custom_model(self):
+        """Test that initializing with custom model works."""
+        client = LLMClient(api_key="test_key", model="custom/model")
+        assert client.api_key == "test_key"
+        assert client.model_id == "custom/model"
 
 
 class TestCircuitGenerator:
@@ -42,8 +49,9 @@ class TestCircuitGenerator:
         """Test validation fails for empty code."""
         generator = CircuitGenerator(api_key="test_key")
 
-        with pytest.raises(ValueError, match="Generated code is empty"):
-            generator._validate_code("")
+        error = generator._try_validate_code("")
+        assert error is not None
+        assert "empty" in error.lower()
 
     def test_validate_code_missing_import(self):
         """Test validation fails when pennylane import is missing."""
@@ -54,8 +62,9 @@ def circuit():
     return None
 """
 
-        with pytest.raises(ValueError, match="must import pennylane"):
-            generator._validate_code(code)
+        error = generator._try_validate_code(code)
+        assert error is not None
+        assert "pennylane" in error.lower()
 
     def test_validate_code_missing_device(self):
         """Test validation fails when device creation is missing."""
@@ -68,8 +77,9 @@ def circuit():
     return qml.state()
 """
 
-        with pytest.raises(ValueError, match="must create a quantum device"):
-            generator._validate_code(code)
+        error = generator._try_validate_code(code)
+        assert error is not None
+        assert "device" in error.lower()
 
     def test_validate_code_missing_qnode(self):
         """Test validation fails when QNode decorator is missing."""
@@ -84,8 +94,9 @@ def circuit():
     return qml.state()
 """
 
-        with pytest.raises(ValueError, match="must use @qml.qnode decorator"):
-            generator._validate_code(code)
+        error = generator._try_validate_code(code)
+        assert error is not None
+        assert "qnode" in error.lower()
 
     def test_validate_code_valid(self):
         """Test validation passes for valid code."""
@@ -103,8 +114,9 @@ def circuit():
     return qml.state()
 """
 
-        # Should not raise any exception
-        generator._validate_code(code)
+        # Should return None (no error)
+        error = generator._try_validate_code(code)
+        assert error is None
 
     def test_execute_code_valid(self):
         """Test executing valid circuit code."""
@@ -121,7 +133,9 @@ def circuit():
     return qml.state()
 """
 
-        circuit = generator._execute_code(code)
+        circuit, error = generator._try_execute_code(code)
+        assert error is None
+        assert circuit is not None
         assert callable(circuit)
 
         # Execute the circuit
@@ -138,5 +152,7 @@ def circuit(
     return None
 """
 
-        with pytest.raises(ValueError, match="Syntax error"):
-            generator._execute_code(code)
+        circuit, error = generator._try_execute_code(code)
+        assert circuit is None
+        assert error is not None
+        assert "syntax" in error.lower()

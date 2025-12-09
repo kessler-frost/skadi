@@ -270,7 +270,6 @@ class TestCircuitAnalyzer:
         analyzer = CircuitAnalyzer()
         assert analyzer is not None
         assert analyzer.llm_client is None
-        assert analyzer.knowledge_augmenter is None
 
     def test_analyze_without_llm(self, bell_state_circuit):
         """Test analysis without LLM client."""

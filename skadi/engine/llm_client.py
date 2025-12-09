@@ -8,6 +8,7 @@ from agno.models.openai import OpenAILike
 from agno.models.openrouter import OpenRouter
 
 from skadi.config import settings
+from skadi.engine.context7_tools import Context7Tools
 
 
 class LLMClient:
@@ -43,6 +44,10 @@ class LLMClient:
         # Create agent with appropriate model based on base_url
         llm_model = self._create_model()
         self.agent = Agent(model=llm_model, markdown=False)
+
+        # Add Context7 tools for documentation lookup
+        context7_toolkit = Context7Tools()
+        self.agent.add_tool(context7_toolkit)
 
     def _create_model(self):
         """
@@ -88,6 +93,8 @@ Guidelines:
 - The circuit must return a measurement (use qml.state() or qml.probs())
 - DO NOT include any example usage, execution calls, or print statements
 - ONLY include: imports, device creation, and the circuit function definition
+- If you're unsure about PennyLane syntax or API usage, use the search_pennylane_docs tool to verify
+- Look up documentation for complex operations like quantum Fourier transform, variational circuits, etc.
 
 Example format:
 import pennylane as qml

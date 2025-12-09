@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     skadi_base_url: str | None = (
         None  # If None, uses OpenRouter; otherwise uses custom provider
     )
+    context7_api_key: str | None = None
 
     # Backend Configuration
     default_backend: str = "default.qubit"
