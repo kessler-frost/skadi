@@ -5,7 +5,7 @@ from typing import Any
 import pennylane as qml
 from pennylane.devices import Device
 
-from skadi.backends.base import Backend, BackendInfo, BackendType
+from skadi.backends.base import Backend, BackendInfo, BackendType, calculate_max_wires
 
 
 class DefaultQubitBackend(Backend):
@@ -17,7 +17,7 @@ class DefaultQubitBackend(Backend):
             device_name="default.qubit",
             backend_type=BackendType.LOCAL,
             description="CPU-based pure state simulator (ideal for small circuits)",
-            max_wires=28,  # Practical limit due to memory
+            max_wires=calculate_max_wires(is_mixed=False),
             supports_shots=True,
             supports_gpu=False,
             requires_credentials=False,
@@ -46,7 +46,7 @@ class DefaultMixedBackend(Backend):
             device_name="default.mixed",
             backend_type=BackendType.LOCAL,
             description="Density matrix simulator (supports noise models)",
-            max_wires=14,  # Much more limited due to 2^(2n) scaling
+            max_wires=calculate_max_wires(is_mixed=True),
             supports_shots=True,
             supports_gpu=False,
             requires_credentials=False,

@@ -50,7 +50,7 @@ class TestDefaultQubitBackend:
         assert info.name == "default.qubit"
         assert info.device_name == "default.qubit"
         assert info.backend_type == BackendType.LOCAL
-        assert info.max_wires == 28
+        assert info.max_wires > 0  # Dynamically calculated from available memory
         assert info.supports_shots is True
         assert info.requires_credentials is False
         assert info.cost_per_task is None
@@ -94,7 +94,7 @@ class TestDefaultMixedBackend:
 
         assert info.name == "default.mixed"
         assert info.backend_type == BackendType.LOCAL
-        assert info.max_wires == 14  # Lower due to density matrix scaling
+        assert info.max_wires > 0  # Dynamically calculated from available memory
 
     def test_is_available(self) -> None:
         """Test availability check."""

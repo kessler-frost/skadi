@@ -1,6 +1,6 @@
 # Skadi
 
-Generate and manipulate PennyLane quantum circuits using natural language.
+Generate, manipulate, and execute PennyLane quantum circuits using natural language.
 
 ## Demo
 
@@ -10,7 +10,7 @@ Generate and manipulate PennyLane quantum circuits using natural language.
 
 ```bash
 # Run directly with uvx (no installation needed)
-uvx --from git+https://github.com/kessler-frost/skadi skadi "create a bell state"
+uvx --from git+https://github.com/kessler-frost/skadi skadi main "create a bell state"
 
 # Or install/upgrade as a tool (always gets latest version)
 uv tool install --reinstall git+https://github.com/kessler-frost/skadi
@@ -28,19 +28,22 @@ export SKADI_API_KEY="your-key-here"
 
 ```bash
 # Create a circuit
-skadi "create a bell state circuit"
+skadi main "create a bell state circuit"
 
 # Modify it
-skadi "add a third qubit with hadamard"
+skadi main "add a third qubit with hadamard"
 
 # Optimize it
-skadi "optimize the circuit"
+skadi main "optimize the circuit"
+
+# Execute it
+skadi run --auto
 
 # Show current circuit
-skadi show
+skadi main show
 
 # Clear circuit file
-skadi clear
+skadi main clear
 ```
 
 All circuits are saved to `circuit.py` and visualized as ASCII art in your terminal.
@@ -50,24 +53,43 @@ All circuits are saved to `circuit.py` and visualized as ASCII art in your termi
 **Generate circuits:**
 
 ```bash
-skadi "create a 3-qubit GHZ state"
-skadi "create a quantum fourier transform for 4 qubits"
+skadi main "create a 3-qubit GHZ state"
+skadi main "create a quantum fourier transform for 4 qubits"
 ```
 
 **Modify and optimize:**
 
 ```bash
-skadi "add a rotation gate before the CNOT"
-skadi "optimize the circuit aggressively"
+skadi main "add a rotation gate before the CNOT"
+skadi main "optimize the circuit aggressively"
 ```
 
 **View and manage:**
 
 ```bash
-skadi show              # Display current circuit
-skadi show --with-code  # Show circuit with code
-skadi clear             # Remove circuit.py
+skadi main show              # Display current circuit
+skadi main show --with-code  # Show circuit with code
+skadi main clear             # Remove circuit.py
 ```
+
+## Execution
+
+**Run circuits on quantum backends:**
+
+```bash
+skadi run                          # Interactive backend selection
+skadi run --auto                   # Auto-select best backend
+skadi run --backend default.qubit  # Use specific backend
+```
+
+**List available backends:**
+
+```bash
+skadi backends       # Show available backends
+skadi backends --all # Show all backends (including unavailable)
+```
+
+Available backends include local simulators (`default.qubit`, `default.mixed`), high-performance simulators (`lightning.qubit`), and cloud backends (AWS Braket).
 
 ## Python API
 

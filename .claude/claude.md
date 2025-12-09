@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-Skadi generates PennyLane quantum circuits from natural language using LLM orchestration.
+Skadi generates, manipulates, and executes PennyLane quantum circuits from natural language using LLM orchestration.
 
 ## Core Design Principle
 
@@ -47,7 +47,8 @@ skadi/
 ├── skadi/
 │   ├── core/          # Circuit generation, validation, representation, and file management
 │   ├── engine/        # LLM client
-│   └── manipulation/  # Circuit transformations, optimization, and analysis
+│   ├── manipulation/  # Circuit transformations, optimization, and analysis
+│   └── backends/      # Execution backends (local, lightning, cloud)
 ├── tests/             # Test suite
 └── examples/          # Example scripts
 ```
@@ -66,13 +67,28 @@ skadi/
 The CLI component provides a natural language interface to Skadi:
 
 - **Entry Point**: `skadi/cli.py` - Typer-based CLI with Rich terminal output
-- **Command Pattern**: Single command with match/case handling:
-  - `show`: Display current circuit (special keyword)
-  - `clear`: Remove circuit.py (special keyword)
-  - Everything else: Natural language processing (create/modify/optimize)
+- **Commands**:
+  - `skadi main <prompt>`: Generate/modify circuits via natural language
+  - `skadi main show`: Display current circuit
+  - `skadi main clear`: Remove circuit.py
+  - `skadi run`: Execute circuit on a backend (with `--auto`, `--backend`, `--shots` options)
+  - `skadi backends`: List available execution backends
 - **Workflow**: All commands work with a single `circuit.py` file in the current directory
 - **Intent Detection**: Automatically detects create/modify/optimize operations from natural language
 - **Code Generation**: LLM generates clean circuit code without print statements or example usage
+
+### Execution Backends
+
+Skadi supports multiple execution backends:
+
+- **Local**: `default.qubit` (state-vector), `default.mixed` (density matrix)
+- **Lightning**: `lightning.qubit` (C++ optimized), `lightning.gpu` (CUDA)
+- **Cloud**: AWS Braket backends (`braket.sv1`, `braket.dm1`, `braket.tn1`)
+
+The backend system includes:
+- **Registry**: Discovers and manages available backends
+- **Recommender**: Suggests optimal backend based on circuit size and system capabilities
+- **Executor**: Binds circuits to backends and executes them
 
 ## Configuration Management
 
